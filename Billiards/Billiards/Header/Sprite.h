@@ -33,10 +33,8 @@ public:
 	}
 
 	virtual ~TextureContainer();
-	//static TextureContainer &instance();
 	int LoadTexture(const WCHAR* t_pTextureName, int texNum);   // テクスチャを読み込みます。 t_pTextureName：ファイル名　texNum:識別ID
 	bool AddUV(int texNum, int left, int top, int width, int height, int uvid);// UV設定するお texNum:設定するテクスチャID left:基点のx座標 top:基点のy座標 width:幅 height:高さ uvid:登録するuv番号
-	//shared_ptr<TextureInfo> GetTexture(int texNum);                    // テクスチャを取得します。
 	TextureInfo* GetTexture(int texNum);
 
 private:
@@ -87,7 +85,6 @@ class Sprite
 	static list<Sprite*> drawObjectList;		// 描画対象リスト
 
 	// シェーダー用定数バッファ
-	//ComPtr<ID3D11Buffer> m_pConstantBuffers;
 	static ComPtr<ID3D11Buffer> m_pObjBuffers;
 
 	// シェーダーリソースビュー

@@ -408,7 +408,7 @@ int TextureContainer::LoadTexture(const WCHAR* t_pTextureName, int texNum)
 	return(result);
 }
 
-// UV設定するお texNum:設定するテクスチャID left:基点のx座標 top:基点のy座標 width:幅 height:高さ uvid:登録するuv番号
+// UV設定する texNum:設定するテクスチャID left:基点のx座標 top:基点のy座標 width:幅 height:高さ uvid:登録するuv番号
 bool TextureContainer::AddUV(int texNum, int left, int top, int width, int height, int uvid)
 {
 	if (data.find(texNum) != data.end())

@@ -13,8 +13,8 @@ ID3D11VertexShader* CreateShader<ID3D11VertexShader>(ID3D11Device* d3dDevice, co
 {
     ID3D11VertexShader *shader = 0;
     HRESULT hr = d3dDevice->CreateVertexShader(shaderBytecode, bytecodeLength, 0, &shader);
-    if (FAILED(hr)) {
-        // This shouldn't produce errors given proper bytecode, so a simple assert is fine
+    if (FAILED(hr)) 
+	{
         assert(false);
     }
     return shader;
@@ -27,8 +27,8 @@ ID3D11GeometryShader* CreateShader<ID3D11GeometryShader>(ID3D11Device* d3dDevice
 {
     ID3D11GeometryShader *shader = 0;
     HRESULT hr = d3dDevice->CreateGeometryShader(shaderBytecode, bytecodeLength, 0, &shader);
-    if (FAILED(hr)) {
-        // This shouldn't produce errors given proper bytecode, so a simple assert is fine
+    if (FAILED(hr)) 
+	{
         assert(false);
     }
     return shader;
@@ -41,8 +41,8 @@ ID3D11PixelShader* CreateShader<ID3D11PixelShader>(ID3D11Device* d3dDevice, cons
 {
     ID3D11PixelShader *shader = 0;
     HRESULT hr = d3dDevice->CreatePixelShader(shaderBytecode, bytecodeLength, 0, &shader);
-    if (FAILED(hr)) {
-        // This shouldn't produce errors given proper bytecode, so a simple assert is fine
+    if (FAILED(hr)) 
+	{
         assert(false);
     }
     return shader;
@@ -55,30 +55,23 @@ ID3D11ComputeShader* CreateShader<ID3D11ComputeShader>(ID3D11Device* d3dDevice, 
 {
     ID3D11ComputeShader *shader = 0;
     HRESULT hr = d3dDevice->CreateComputeShader(shaderBytecode, bytecodeLength, 0, &shader);
-    if (FAILED(hr)) {
-        // This shouldn't produce errors given proper bytecode, so a simple assert is fine
+    if (FAILED(hr)) 
+	{
         assert(false);
     }
     return shader;
 }
 
-// Templated (on shader type) shader wrapper to wrap basic functionality
-// TODO: Support optional lazy compile
 template <typename T>
 class Shader
 {
 public:
     Shader(ID3D11Device* d3dDevice, LPCTSTR srcFile, LPCSTR functionName, CONST D3D_SHADER_MACRO *defines = 0)
     {
-        // TODO: Support profile selection from the application? Probably not necessary as we don't
-        // support down-level hardware at the moment anyways.
         LPCSTR profile = GetShaderProfileString<T>();
 
 		DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #if defined( DEBUG ) || defined( _DEBUG )
-		// このフラグはシェーダのデバッグの経験を向上させるshaders.Settingにデバッグ情報を埋め込む
-		// D3DCOMPILE_DEBUGフラグを設定しますが、それでもシェーダを最適化することが、彼らはこの
-		// プログラムのリリース構成で実行される正確な方法を実行することができます。
 		dwShaderFlags |= D3DCOMPILE_DEBUG;
 #endif
 
@@ -86,12 +79,13 @@ public:
         HRESULT hr = D3DCompileFromFile(srcFile, defines, 0, functionName, profile, 
 			dwShaderFlags, 0, &bytecode, &errors);
         
-        if (errors) {
+        if (errors) 
+		{
             OutputDebugStringA(static_cast<const char *>(errors->GetBufferPointer()));
         }
 
-        if (FAILED(hr)) {
-            // TODO: Define exception type and improve this error string, but the ODS will do for now
+        if (FAILED(hr)) 
+		{
             throw std::runtime_error("Error compiling shader");
         }
 
