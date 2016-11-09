@@ -179,6 +179,7 @@
     <ClInclude Include="Header\Camera.h" />
     <ClInclude Include="Header\Collision.h" />
     <ClInclude Include="Header\CollisionFromFBX.h" />
+    <ClInclude Include="Header\Component.h" />
     <ClInclude Include="Header\FBXInitialize.h" />
     <ClInclude Include="Header\FBXLoader.h" />
     <ClInclude Include="Header\FBXRendererDX11.h" />
