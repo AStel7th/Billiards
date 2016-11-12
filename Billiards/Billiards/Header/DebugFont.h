@@ -1,10 +1,11 @@
 #ifndef UDRAWFONT_H
 #define UDRAWFONT_H
 
-#include "GraphicsPipeline.h"
 #include "Direct3D11.h"
 #include "../HLSL/DebugFont_VS_Main.h"
 #include "../HLSL/DebugFont_PS_Main.h"
+
+class GraphicsPipeline;
 
 class DebugFont
 {
@@ -46,7 +47,7 @@ private:
 	// シェーダー用定数バッファ
 	ComPtr<ID3D11Buffer> m_pConstantBuffers;
 
-	unique_ptr<GraphicsPipeline> m_pGraphicsPipeline;
+	GraphicsPipeline* m_pGraphicsPipeline;
 
 	float m_FontWidth;   // ポリゴンの横幅
 	float m_FontHeight;  // ポリゴンの縦幅

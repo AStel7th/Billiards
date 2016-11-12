@@ -1,14 +1,15 @@
 #include "../Header/DrawFPS.h"
+#include "../Header/DebugFont.h"
 
 DrawFPS::DrawFPS() : GameObject(CALL_TAG::BALL)
 {
-	pFPS = make_unique<UFPS>();
+	pFPS = NEW UFPS();
 	pFPS->CreateMesh();
 }
 
 DrawFPS::~DrawFPS()
 {
-
+	SAFE_DELETE(pFPS);
 }
 
 void DrawFPS::Update()

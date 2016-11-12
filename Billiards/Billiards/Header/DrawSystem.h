@@ -5,7 +5,7 @@
 #include <memory>
 #include "Sprite.h"
 #include "Shader.h"
-#include "GameObjectManager.h"
+#include "GameObject.h"
 
 const UINT MAX_BONES = 255;
 

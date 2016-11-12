@@ -1,4 +1,8 @@
 #include "../Header/Game.h"
+#include "../Header/func.h"
+#include "../Header/Direct3D11.h"
+#include <memory>
+#include "../Header/GameObject.h"
 //
 //ƒOƒ[ƒoƒ‹•Ï”éŒ¾
 HINSTANCE g_hInst;

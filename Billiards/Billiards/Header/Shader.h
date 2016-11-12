@@ -2,6 +2,7 @@
 
 #include <d3d11.h>
 #include <assert.h>
+#include <D3Dcompiler.h>
 
 template <typename T> LPCSTR GetShaderProfileString();
 template <typename T> T* CreateShader(ID3D11Device* d3dDevice, const void* shaderBytecode, size_t bytecodeLength);

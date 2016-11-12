@@ -2,7 +2,6 @@
 #define GRAPHICS_PIPELINE_H
 
 #include "Direct3D11.h"
-#include <D3Dcompiler.h>
 
 class GraphicsPipeline
 {

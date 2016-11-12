@@ -1,18 +1,17 @@
 #include "../Header/Game.h"
-#include "../Header/FBXRendererDX11.h"
-#include "../Header/Direct3D11.h"
+#include "../Header/TimeControl.h"
 #include "../Header/DrawSystem.h"
-#include <memory>
 #include "../Header/Camera.h"
+#include "../Header/GameObject.h"
+#include "../Header/BilliardsTable.h"
 //#include "../Header/Effect.h"
-
 
 Game::Game()
 {
 	//Sprite::Create();
 	DrawSystem::Instance().Init(1);
 
-	timeCtrl = make_unique<TimeControl>();
+	timeCtrl = NEW TimeControl();
 
 	Camera::Instance().SetView(XMFLOAT3(0.0f, 20.0f, -20.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f));
 	Camera::Instance().SetProj(RADIAN(60.0f), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 1.0f, 2000.0f);
@@ -30,6 +29,7 @@ Game::Game()
 
 Game::~Game()
 {
+	SAFE_DELETE(timeCtrl);
 }
 
 bool Game::Run()

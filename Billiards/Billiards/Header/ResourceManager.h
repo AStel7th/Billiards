@@ -1,14 +1,18 @@
-#pragma once
+#ifndef __RESOURCEMANAGER_H__
+#define __RESOURCEMANAGER_H__
+
 #include <map>
 #include <string>
-#include "FBXRendererDX11.h"
 
 using namespace std;
+
+class FBXRenderDX11;
+class FBXLoader;
 
 class ResourceManager
 {
 private:
-	map<string, shared_ptr<FBXLoader>> modelList;
+	map<string, FBXLoader*> modelList;
 protected:
 	ResourceManager();
 public:
@@ -25,3 +29,5 @@ public:
 
 	void GetResource(FBXRenderDX11& outModel, const string & name, const char* filename = nullptr);
 };
+
+#endif

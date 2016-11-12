@@ -63,7 +63,7 @@
     <ClCompile Include="cpp\CollisionFromFBX.cpp">
       <Filter>ソース ファイル\FBX</Filter>
     </ClCompile>
-    <ClCompile Include="cpp\GameObjectManager.cpp">
+    <ClCompile Include="cpp\GameObject.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -140,10 +140,10 @@
     <ClInclude Include="Header\Collision.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Header\GameObjectManager.h">
+    <ClInclude Include="Header\Component.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Header\Component.h">
+    <ClInclude Include="Header\GameObject.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

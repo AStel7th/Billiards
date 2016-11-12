@@ -1,14 +1,12 @@
 #pragma once
 
-#include "FBXLoader.h"
+#include <vector>
 #include "../DirectXTex/WICTextureLoader.h"
 #include "../DirectXTex/DirectXTex.h"
-#include <d3d11.h>
-#include <d3dcompiler.h>
-#include <DirectXMath.h>
-#include "DrawSystem.h"
+#include "Direct3D11.h"
 
-using namespace DirectX;
+class FBXLoader;
+struct FBX_MESH_NODE;
 
 struct	VERTEX_DATA
 {
@@ -136,11 +134,9 @@ class FBXRenderDX11
 {
 	Direct3D11 &d3d11 = Direct3D11::Instance();
 
-	DrawSystem &drawSystem = DrawSystem::Instance();
-
 	FBXLoader*	m_pFBX;
 
-	std::vector<MESH_NODE>	m_meshNodeArray;
+	vector<MESH_NODE>	m_meshNodeArray;
 
 	XMFLOAT4X4 m_World, m_View, m_Proj;
 

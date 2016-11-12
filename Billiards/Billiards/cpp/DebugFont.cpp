@@ -1,4 +1,5 @@
 #include "../Header/DebugFont.h"
+#include "../Header/GraphicsPipeline.h"
 
 DebugFont::DebugFont()
 {
@@ -18,6 +19,7 @@ DebugFont::~DebugFont()
 void DebugFont::Invalidate()
 {
 	m_pStr[0] = '\0';
+	SAFE_DELETE(m_pGraphicsPipeline);
 }
 
 void DebugFont::CreateMesh(float FontWidth, float FontHeight)
@@ -27,7 +29,7 @@ void DebugFont::CreateMesh(float FontWidth, float FontHeight)
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	m_pGraphicsPipeline = make_unique<GraphicsPipeline>();
+	m_pGraphicsPipeline = NEW GraphicsPipeline();
 
 	// シェーダーを作成する
 	m_pGraphicsPipeline->CreateVertexShaderFromMemory((LPBYTE)g_DebugFont_VS_Main, sizeof(g_DebugFont_VS_Main), layout, _countof(layout));

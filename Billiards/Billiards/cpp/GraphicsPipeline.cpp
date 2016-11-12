@@ -1,4 +1,5 @@
 #include "../Header/GraphicsPipeline.h"
+#include <D3Dcompiler.h>
 
 GraphicsPipeline::GraphicsPipeline()
 {

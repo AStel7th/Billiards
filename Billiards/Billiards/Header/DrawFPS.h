@@ -1,11 +1,14 @@
-#pragma once
-#include "../Header/GameObjectManager.h"
-#include "../Header/DebugFont.h"
+#ifndef __DRAWFPS_H__
+#define __DRAWFPS_H__
+
+#include "GameObject.h"
+
+class UFPS;
 
 class DrawFPS : public GameObject
 {
 private:
-	unique_ptr<UFPS> pFPS;
+	UFPS* pFPS;
 public:
 	DrawFPS();
 	~DrawFPS();
@@ -14,3 +17,5 @@ public:
 
 	void Draw();
 };
+
+#endif

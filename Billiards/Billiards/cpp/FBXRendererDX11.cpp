@@ -1,4 +1,6 @@
 #include "../Header/FBXRendererDX11.h"
+#include "../Header/FBXLoader.h"
+#include "../Header/DrawSystem.h"
 #include < locale.h >
 
 inline string GetExtension(const string &path)
@@ -478,7 +480,7 @@ HRESULT FBXRenderDX11::RenderAll()
 
 HRESULT FBXRenderDX11::RenderNode(const size_t nodeId)
 {
-	ID3D11Buffer* boneBuf = drawSystem.GetCBuffer(2);
+	ID3D11Buffer* boneBuf = DrawSystem::Instance().GetCBuffer(2);
 
 	size_t nodeCount = m_meshNodeArray.size();
 	if (nodeCount == 0 || nodeCount <= nodeId)
@@ -630,7 +632,7 @@ HRESULT FBXRenderDX11::RenderNodeInstancingIndirect(const size_t nodeId, ID3D11B
 
 void FBXRenderDX11::Draw(int frame, bool bInstance)
 {
-	ID3D11Buffer* buf = drawSystem.GetCBuffer(1);
+	ID3D11Buffer* buf = DrawSystem::Instance().GetCBuffer(1);
 
 	// FBX Model‚Ìnode”‚ðŽæ“¾
 	size_t nodeCount = GetNodeCount();

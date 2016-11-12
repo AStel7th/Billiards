@@ -1,18 +1,19 @@
-#pragma once
-#include <memory>
-#include "FBXRendererDX11.h"
-#include "CollisionFromFBX.h"
-#include "GameObjectManager.h"
-#include "Direct3D11.h"
-#include "DrawSystem.h"
+#ifndef __BILLIARDSTABLE_H__
+#define __BILLIARDSTABLE_H__
+
+#include "GameObject.h"
+
+class FBXRenderDX11;
+class CollisionFromFBX;
+class GameObject;
 
 class BilliardsTable : public GameObject
 {
 private:
-	FBXRenderDX11 model;
-	FBXRenderDX11 collision;
+	FBXRenderDX11* model;
+	FBXRenderDX11* collision;
 
-	CollisionFromFBX col;
+	CollisionFromFBX* col;
 
 	XMFLOAT4X4 m_World;
 
@@ -26,3 +27,5 @@ public:
 
 	void Draw();
 };
+
+#endif

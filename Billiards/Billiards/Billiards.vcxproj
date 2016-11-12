@@ -166,7 +166,7 @@
     <ClCompile Include="cpp\Direct3D11.cpp" />
     <ClCompile Include="cpp\DrawFPS.cpp" />
     <ClCompile Include="cpp\DrawSystem.cpp" />
-    <ClCompile Include="cpp\GameObjectManager.cpp" />
+    <ClCompile Include="cpp\GameObject.cpp" />
     <ClCompile Include="cpp\GraphicsPipeline.cpp" />
     <ClCompile Include="cpp\main.cpp" />
     <ClCompile Include="cpp\ResourceManager.cpp" />
@@ -190,7 +190,7 @@
     <ClInclude Include="Header\Effect.h" />
     <ClInclude Include="Header\Exception.h" />
     <ClInclude Include="Header\func.h" />
-    <ClInclude Include="Header\GameObjectManager.h" />
+    <ClInclude Include="Header\GameObject.h" />
     <ClInclude Include="Header\GraphicsPipeline.h" />
     <ClInclude Include="Header\ResourceManager.h" />
     <ClInclude Include="Header\Shader.h" />

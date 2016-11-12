@@ -1,4 +1,4 @@
-#include "../Header/GameObjectManager.h"
+#include "../Header/GameObject.h"
 
 GameObject::GameObject(CALL_TAG tag)
 {

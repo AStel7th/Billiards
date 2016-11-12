@@ -2,10 +2,11 @@
 #define SPRITE_H
 
 #include "Direct3D11.h"
-#include "GraphicsPipeline.h"
 #include <map>
 #include <list>
 #include <locale.h>
+
+class GraphicsPipeline;
 
 //====================================================================
 //  スプライト関連
