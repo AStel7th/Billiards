@@ -10,17 +10,6 @@ GameObject::~GameObject()
 
 }
 
-void GameObject::Update()
-{
-
-}
-
-void GameObject::Draw()
-{
-
-}
-
-
 unordered_map<CALL_TAG, vector<GameObject*>> GameObjectManager::objectList;
 
 void GameObjectManager::AddGameObject(GameObject* pGameObject, CALL_TAG tag)

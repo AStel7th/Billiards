@@ -1,7 +1,6 @@
 #ifndef __GAMEOBJECTMANAGER_H__
 #define __GAMEOBJECTMANAGER_H__
 
-#include <Windows.h>
 #include <unordered_map>
 #include <vector>
 #include "func.h"
@@ -17,14 +16,17 @@ enum struct CALL_TAG
 class GameObject
 {
 public:
+	float posX, posY, posZ;
+	float rotX, rotY, rotZ;
+
 	GameObject(CALL_TAG tag);
 	GameObject(const GameObject & gameObject) = delete;
 
 	virtual ~GameObject();
 
-	virtual void Update();
+	virtual void Update() = 0;
 
-	virtual void Draw();
+	virtual void Draw() = 0;
 };
 
 class GameObjectManager
