@@ -1,6 +1,6 @@
 #include "../Header/GameObject.h"
 
-GameObject::GameObject(CALL_TAG tag)
+GameObject::GameObject(CALL_TAG tag) : posX(0),posY(0),posZ(0),rotX(0),rotY(0),rotZ(0)
 {
 	GameObjectManager::AddGameObject(this, tag);
 }
