@@ -1,6 +1,4 @@
-#ifndef __RESOURCEMANAGER_H__
-#define __RESOURCEMANAGER_H__
-
+#pragma once
 #include <map>
 #include <string>
 
@@ -29,5 +27,3 @@ public:
 
 	void GetResource(FBXRenderDX11& outModel, const string & name, const char* filename = nullptr);
 };
-
-#endif

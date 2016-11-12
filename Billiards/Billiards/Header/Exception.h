@@ -1,6 +1,4 @@
-#ifndef UEXCEPTION_H
-#define UEXCEPTION_H
-
+#pragma once
 #include <windows.h>
 #include <tchar.h>
 
@@ -19,5 +17,3 @@ public:
 #endif
 	}
 };
-
-#endif

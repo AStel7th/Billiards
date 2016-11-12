@@ -1,6 +1,4 @@
-#ifndef __CSCENE_H__
-#define __CSCENE_H__
-
+#pragma once
 #include <memory>
 
 class TimeControl;
@@ -18,5 +16,3 @@ public:
 
 
 };
-
-#endif

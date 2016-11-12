@@ -1,6 +1,4 @@
-#ifndef SPRITE_H
-#define SPRITE_H
-
+#pragma once
 #include "Direct3D11.h"
 #include <map>
 #include <list>
@@ -183,7 +181,3 @@ public:
 	void SetUVFromTex(int uvid, float x = 0.0f, float y = 0.0f);
 	void SetUVFromTexCenter(int uvid);
 };
-
-
-
-#endif

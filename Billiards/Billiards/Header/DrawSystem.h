@@ -1,6 +1,4 @@
-#ifndef DRAWSYSTEM_H
-#define DRAWSYSTEM_H
-
+#pragma once
 #include <map>
 #include <memory>
 #include "Sprite.h"
@@ -105,5 +103,3 @@ public:
 	ID3D11Buffer* GetCBuffer(int i);
 	void SetCBufferVS(int i);
 };
-
-#endif //DRAWSYSTEM_H

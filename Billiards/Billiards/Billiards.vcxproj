@@ -159,6 +159,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cpp\BilliardsTable.cpp" />
+    <ClCompile Include="cpp\BilliardsTablePhysicsComponent.cpp" />
     <ClCompile Include="cpp\CollisionFromFBX.cpp" />
     <ClCompile Include="cpp\FBXLoader.cpp" />
     <ClCompile Include="cpp\FBXRendererDX11.cpp" />
@@ -176,6 +177,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header\BilliardsTable.h" />
+    <ClInclude Include="Header\BilliardsTablePhysicsComponent.h" />
     <ClInclude Include="Header\Camera.h" />
     <ClInclude Include="Header\Collision.h" />
     <ClInclude Include="Header\CollisionFromFBX.h" />

@@ -1,6 +1,4 @@
-#ifndef GRAPHICS_PIPELINE_H
-#define GRAPHICS_PIPELINE_H
-
+#pragma once
 #include "Direct3D11.h"
 
 class GraphicsPipeline
@@ -167,5 +165,3 @@ public:
 		d3d11.pD3DDeviceContext->OMSetBlendState(m_pBlendState.Get(), nullptr, 0xffffffff);
 	}
 };
-
-#endif

@@ -1,6 +1,4 @@
-#ifndef __TIMECONTROL_H__
-#define __TIMECONTROL_H__
-
+#pragma once
 #include <Windows.h>
 
 //=======================================================
@@ -35,8 +33,3 @@ public:
 	DWORD GetSkipRate();
 	DWORD GetFrameRate();
 };
-
-
-
-
-#endif

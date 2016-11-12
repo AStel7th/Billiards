@@ -1,6 +1,4 @@
-#ifndef __GAMEOBJECTMANAGER_H__
-#define __GAMEOBJECTMANAGER_H__
-
+#pragma once
 #include <unordered_map>
 #include <vector>
 #include "func.h"
@@ -48,5 +46,3 @@ static TYPE* Create(ARGS && ... args)
 {
 	return NEW TYPE(std::forward<ARGS>(args) ...);
 }
-
-#endif

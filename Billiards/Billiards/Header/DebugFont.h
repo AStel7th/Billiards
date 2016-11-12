@@ -1,6 +1,4 @@
-#ifndef UDRAWFONT_H
-#define UDRAWFONT_H
-
+#pragma once
 #include "Direct3D11.h"
 #include "../HLSL/DebugFont_VS_Main.h"
 #include "../HLSL/DebugFont_PS_Main.h"
@@ -113,4 +111,3 @@ public:
 	void SetText(TCHAR* tchar, XMFLOAT2 *pos);
 	void Draw();
 };
-#endif

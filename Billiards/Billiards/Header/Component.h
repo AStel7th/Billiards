@@ -1,6 +1,4 @@
-#ifndef __COMPONENT_H__
-#define __COMPONENT_H__
-
+#pragma once
 class GameObject;
 
 class Component
@@ -30,5 +28,3 @@ public:
 	virtual ~GraphicsComponent(){}
 	virtual void Update(GameObject& object) = 0;
 };
-
-#endif

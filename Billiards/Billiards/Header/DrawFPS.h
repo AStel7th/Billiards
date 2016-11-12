@@ -1,6 +1,4 @@
-#ifndef __DRAWFPS_H__
-#define __DRAWFPS_H__
-
+#pragma once
 #include "GameObject.h"
 
 class UFPS;
@@ -17,5 +15,3 @@ public:
 
 	void Draw();
 };
-
-#endif

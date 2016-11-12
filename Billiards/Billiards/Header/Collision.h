@@ -1,6 +1,4 @@
-#ifndef COLLISION_H
-#define COLLISION_H
-
+#pragma once
 #include <Windows.h>
 #include <DirectXMath.h>
 using namespace DirectX;
@@ -255,5 +253,3 @@ public:
 		return false;
 	}
 };
-
-#endif 

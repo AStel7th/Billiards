@@ -1,6 +1,4 @@
-#ifndef DIRECT3D11_H
-#define DIRECT3D11_H
-
+#pragma once
 #include <crtdbg.h>
 #include <d3d11.h>
 #include <wrl/client.h>
@@ -291,5 +289,3 @@ public:
 		hWnd = hwnd;
 	}
 };
-
-#endif	// DIRECT3D11_H

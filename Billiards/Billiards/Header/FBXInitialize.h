@@ -1,5 +1,4 @@
-#ifndef __FBXINITIALIZE_H__
-#define __FBXINITIALIZE_H__
+#pragma once
 #include "func.h"
 #include <fbxsdk.h>
 #include <Windows.h>
@@ -166,5 +165,3 @@ public:
 		return hr;
 	}
 };
-
-#endif
