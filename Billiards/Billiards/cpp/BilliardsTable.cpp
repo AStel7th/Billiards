@@ -3,17 +3,20 @@
 #include "../Header/CollisionFromFBX.h"
 #include "../Header/Camera.h"
 #include "../Header/ResourceManager.h"
+#include "../Header/BilliardsTablePhysicsComponent.h"
 
 BilliardsTable::BilliardsTable() : GameObject(CALL_TAG::TABLE)
 {
-	model = NEW FBXRenderDX11();
-	collision = NEW FBXRenderDX11();
+	pTableModel = NEW FBXRenderDX11();
+	pCollisionModel = NEW FBXRenderDX11();
 
-	ResourceManager::Instance().GetResource(*model, "Table", "Resource/billiardsTable_light.fbx");
-	ResourceManager::Instance().GetResource(*collision, "col", "Resource/billiardsTableCollider.fbx");
+	ResourceManager::Instance().GetResource(*pTableModel, "Table", "Resource/billiardsTable_light.fbx");
+	ResourceManager::Instance().GetResource(*pCollisionModel, "col", "Resource/billiardsTableCollider.fbx");
 
-	col = NEW CollisionFromFBX();
-	col->LoadFBX("Resource/billiardsTableCollider.fbx");
+	pCollider = NEW CollisionFromFBX();
+	pCollider->LoadFBX("Resource/billiardsTableCollider.fbx");
+
+	pPhysicsComponent = NEW BilliardsTablePhysicsComponent();
 
 	XMStoreFloat4x4(&m_World, XMMatrixIdentity());
 
@@ -22,9 +25,10 @@ BilliardsTable::BilliardsTable() : GameObject(CALL_TAG::TABLE)
 
 BilliardsTable::~BilliardsTable()
 {
-	SAFE_DELETE(model);
-	SAFE_DELETE(collision);
-	SAFE_DELETE(col);
+	SAFE_DELETE(pTableModel);
+	SAFE_DELETE(pCollisionModel);
+	SAFE_DELETE(pCollider);
+	SAFE_DELETE(pPhysicsComponent);
 }
 
 void BilliardsTable::Update()
@@ -33,13 +37,15 @@ void BilliardsTable::Update()
 
 	XMStoreFloat4x4(&m_World, XMLoadFloat4x4(&m_World)*XMMatrixRotationY(ang));
 
-	model->SetMatrix(m_World, Camera::Instance().view, Camera::Instance().proj);
+	pTableModel->SetMatrix(m_World, Camera::Instance().view, Camera::Instance().proj);
 
-	collision->SetMatrix(m_World, Camera::Instance().view, Camera::Instance().proj);
+	pCollisionModel->SetMatrix(m_World, Camera::Instance().view, Camera::Instance().proj);
+
+	pPhysicsComponent->Update(*this);
 }
 
 void BilliardsTable::Draw()
 {
-	model->Draw();
-	collision->Draw();
+	pTableModel->Draw();
+	pCollisionModel->Draw();
 }

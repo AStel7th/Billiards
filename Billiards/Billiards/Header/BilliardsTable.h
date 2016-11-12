@@ -1,19 +1,19 @@
-#ifndef __BILLIARDSTABLE_H__
-#define __BILLIARDSTABLE_H__
-
+#pragma once
 #include "GameObject.h"
 
 class FBXRenderDX11;
 class CollisionFromFBX;
-class GameObject;
+class BilliardsTablePhysicsComponent;
 
 class BilliardsTable : public GameObject
 {
 private:
-	FBXRenderDX11* model;
-	FBXRenderDX11* collision;
+	FBXRenderDX11* pTableModel;
+	FBXRenderDX11* pCollisionModel;
 
-	CollisionFromFBX* col;
+	CollisionFromFBX* pCollider;
+
+	BilliardsTablePhysicsComponent* pPhysicsComponent;
 
 	XMFLOAT4X4 m_World;
 
@@ -27,5 +27,3 @@ public:
 
 	void Draw();
 };
-
-#endif
