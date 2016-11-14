@@ -5,18 +5,12 @@
 
 using namespace std;
 
-enum struct CALL_TAG
-{
-	BALL,
-	TABLE
-};
-
 template<class TYPE = GameObject*>
 class _GameObject_
 {
 protected:
-	static TYPE pBegin;
-	static TYPE pEnd;
+	static TYPE pBegin;			//連結リストの頭
+	static TYPE pEnd;			//連結リストの末尾
 };
 
 template<class TYPE>
@@ -32,6 +26,8 @@ enum DestroyMode
 };
 
 
+//ゲーム内のオブジェクトの元になるクラス
+//各オブジェクトはこのクラスを継承して作成する
 class GameObject : public _GameObject_<>
 {
 private:
@@ -46,6 +42,8 @@ private:
 	//システムから消去　次のポインタが返される
 	static inline GameObject* _Unregister_(GameObject* pObj);
 
+	virtual void Update() = 0;
+
 protected:
 	GameObject();
 	GameObject(const DestroyMode & mode);
@@ -56,7 +54,6 @@ public:
 	float posX, posY, posZ;
 	float rotX, rotY, rotZ;
 
-	
 	GameObject(const GameObject & gameObject) = delete;
 
 	virtual bool isDestroy();

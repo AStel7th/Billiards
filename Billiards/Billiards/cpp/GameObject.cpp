@@ -87,7 +87,7 @@ void GameObject::All::Update()
 		switch (pObj->mode)
 		{
 		case DestroyMode::None:
-			//–³‚µ
+			pObj->Update();
 			break;
 
 		case DestroyMode::Destroy:
