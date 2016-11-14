@@ -11,34 +11,63 @@ enum struct CALL_TAG
 	TABLE
 };
 
-class GameObject
+template<class TYPE = GameObject*>
+class _GameObject_
 {
+protected:
+	static TYPE pBegin;
+	static TYPE pEnd;
+};
+
+template<class TYPE>
+TYPE _GameObject_<TYPE>::pBegin = nullptr;
+template<class TYPE>
+TYPE _GameObject_<TYPE>::pEnd = nullptr;
+
+
+enum DestroyMode
+{
+	None,		//GameObject::Destroy を呼び出して消去
+	Destroy,	//GameObject::Update が呼び出された時に消去
+};
+
+
+class GameObject : public _GameObject_<>
+{
+private:
+	GameObject*			pPrev;	//自身の前ポインタ
+	GameObject*			pNext;	//自身の後ポインタ
+
+	DestroyMode	mode;		//消去手段
+							
+	//システムへの登録
+	static inline void _Register_(GameObject* pObj);
+
+	//システムから消去　次のポインタが返される
+	static inline GameObject* _Unregister_(GameObject* pObj);
+
+protected:
+	GameObject();
+	GameObject(const DestroyMode & mode);
+	virtual ~GameObject();
+	
+	virtual void Destroy();
 public:
 	float posX, posY, posZ;
 	float rotX, rotY, rotZ;
 
-	GameObject(CALL_TAG tag);
+	
 	GameObject(const GameObject & gameObject) = delete;
 
-	virtual ~GameObject();
+	virtual bool isDestroy();
 
-	virtual void Update() = 0;
+	class All
+	{
+	public:
+		static void Clear();
 
-	virtual void Draw() = 0;
-};
-
-class GameObjectManager
-{
-private:
-	static unordered_map<CALL_TAG,vector<GameObject*>> objectList;
-public:
-	static void AddGameObject(GameObject* pGameObject, CALL_TAG tag);
-
-	static void Update(CALL_TAG tag);
-
-	static void Draw(CALL_TAG tag);
-
-	static void AllClear();
+		static void Update();
+	};
 };
 
 template <class TYPE, typename ... ARGS>
