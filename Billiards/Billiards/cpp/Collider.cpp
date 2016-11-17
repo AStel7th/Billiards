@@ -39,48 +39,6 @@ void GetRelectedPos(float Res_time, Collider &c, XMFLOAT3 &RefV)
 	XMStoreFloat3(&c.GetGameObject()->pos, p);
 }
 
-//
-//
-//// 2球衝突処理
-//void SphereColProc(Collider* c1, Collider *s2)
-//{
-//	float t = 0;
-//	D3DXVECTOR3 C1ColPos, C2ColPos, C1Velo, C2Velo;
-//
-//	// 衝突している2円の衝突位置を検出
-//	if (!CheckParticleCollision(
-//		s1->r, s2->r,
-//		&s1->Pre_p, &s1->p,
-//		&s2->Pre_p, &s2->p,
-//		&t,
-//		&C1ColPos,
-//		&C2ColPos))
-//		return;	// 衝突していないようです
-//
-//				// 衝突位置を前位置として保存
-//	s1->p = C1ColPos;
-//	s2->p = C2ColPos;
-//	s1->Pre_p = C1ColPos;
-//	s2->Pre_p = C2ColPos;
-//
-//	// 衝突後の速度を算出
-//	if (!CalcParticleColliAfterPos(
-//		&C1ColPos, &s1->v,
-//		&C2ColPos, &s2->v,
-//		s1->w, s2->w,
-//		g_Circle_Ref, g_Circle_Ref,		// 球の反発係数
-//		t,
-//		&C1ColPos, &C1Velo,
-//		&C2ColPos, &C2Velo))
-//		return; // 何か失敗したようです
-//
-//				// 衝突後位置に移動
-//	s1->v = C1Velo;
-//	s2->v = C2Velo;
-//	s1->p += s1->v;
-//	s2->p += s2->v;
-//}
-
 // TODO::ボールのPhysicsコンポーネントで管理
 //// 次の球の位置を取得
 //void GetNextPos(Collider &c)
