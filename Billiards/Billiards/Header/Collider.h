@@ -1,10 +1,21 @@
 #pragma once
 #include <unordered_map>
 #include <vector>
+#include <DirectXMath.h>
+
+#define SPHERE_REPULSION 0.75f
 
 using namespace std;
+using namespace DirectX;
 
 class GameObject;
+class SpaceDivision;
+class ObjectTree;
+class PhysicsComponent;
+class SphereCollider;
+class BoxCollider;
+class MeshCollider;
+class CollisionFromFBX;
 
 template<class TYPE = Collider*>
 class _Collider_
@@ -20,15 +31,22 @@ TYPE _Collider_<TYPE>::pBegin = nullptr;
 template<class TYPE>
 TYPE _Collider_<TYPE>::pEnd = nullptr;
 
+enum ColliderType
+{
+	Sphere,
+	Box,
+	Mesh,
+};
+
 
 class Collider : public _Collider_<>
 {
-private:
-	Collider*			pPrev;	//自身の前ポインタ
-	Collider*			pNext;	//自身の後ポインタ
-
-	int spaceID;
-	GameObject* pObject;
+protected:
+	Collider*			pPrev;		//自身の前ポインタ
+	Collider*			pNext;		//自身の後ポインタ
+	ObjectTree*			pObjectTree;//空間分割用ノードクラス
+	GameObject*			pObject;
+	ColliderType		colType;
 
 	//システムへの登録
 	static inline void _Register_(Collider* pObj);
@@ -40,13 +58,19 @@ public:
 	Collider();
 	virtual ~Collider();
 
-	void Create(GameObject* pObj);
+	virtual void Create(GameObject* pObj,ColliderType type);
 
-	void Update();
+	virtual void Update() = 0;
 
-	int GetSpaceID();
+	GameObject* GetGameObject();
 	
 	virtual void Destroy();
+
+	virtual void CollisionDetection(Collider* pCol) = 0;
+
+	virtual void isCollision(SphereCollider* other) = 0;
+	virtual void isCollision(BoxCollider* other) = 0;
+	virtual void isCollision(MeshCollider* other) = 0;
 
 	class All
 	{
@@ -54,12 +78,67 @@ public:
 		static void HitCheck();
 	};
 };
-//
-//class ColliderContainer
-//{
-//	static unordered_map<int, vector<Collider*>> colliderList;
-//public:
-//	static void AddCollider(Collider* pCol);
-//	static void HitCheck();
-//	static void AllClear();
-//};
+
+class SphereCollider : public Collider
+{
+private:
+	float radius;
+public:
+	SphereCollider() : radius(1.0f){}
+	virtual ~SphereCollider(){}
+
+	void Create(GameObject* pObj, ColliderType type, float r);
+
+	void Update();
+
+	void CollisionDetection(Collider* pCol);
+
+	void isCollision(SphereCollider* other);
+	void isCollision(BoxCollider* other);
+	void isCollision(MeshCollider* other);
+
+};
+
+class BoxCollider : public Collider
+{
+private:
+	XMFLOAT3 minPos;	//BOXの左下
+	XMFLOAT3 maxPos;
+	XMFLOAT3 center;
+	float size;
+public:
+	BoxCollider() : minPos(), maxPos(),center(),size(1.0f){}
+	virtual ~BoxCollider() {}
+
+	void Create(GameObject* pObj, ColliderType type, float s);
+
+	void Update();
+
+	void CollisionDetection(Collider* pCol);
+
+	void isCollision(SphereCollider* other);
+	void isCollision(BoxCollider* other);
+	void isCollision(MeshCollider* other);
+};
+
+class MeshCollider : public Collider
+{
+private:
+	CollisionFromFBX* pMeshCol;
+	float size;	//TODO::現在空間登録用の包み込み範囲がメッシュだと指定できていない、今後考えなければならない
+public:
+	MeshCollider() : pMeshCol(nullptr), size(1.0f){}
+	virtual ~MeshCollider();
+
+	void Create(GameObject* pObj, ColliderType type, const char* fpath,float s);
+
+	void Update();
+
+	CollisionFromFBX* GetMesh();
+
+	void CollisionDetection(Collider* pCol);
+
+	void isCollision(SphereCollider* other);
+	void isCollision(BoxCollider* other);
+	void isCollision(MeshCollider* other);
+};
