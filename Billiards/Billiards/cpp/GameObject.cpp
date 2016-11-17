@@ -41,7 +41,7 @@ inline GameObject* GameObject::_Unregister_(GameObject* pObj)
 	return next;
 }
 
-GameObject::GameObject() : pPrev(nullptr), pNext(nullptr),mode(DestroyMode::None),posX(0),posY(0),posZ(0),rotX(0),rotY(0),rotZ(0)
+GameObject::GameObject() : pPrev(nullptr), pNext(nullptr),mode(DestroyMode::None),pos(0.0f, 0.0f, 0.0f),rot(0.0f, 0.0f, 0.0f)
 {
 	GameObject::_Register_(this);
 }
@@ -55,6 +55,16 @@ void GameObject::Destroy()
 {
 	//éüÇÃçXêVÇ≈è¡ñ≈Ç∑ÇÈÇÊÇ§Ç…ê›íË
 	mode = DestroyMode::Destroy;
+}
+
+void GameObject::AddComponent(Component* pCom)
+{
+	componentList.push_back(pCom);
+}
+
+vector<Component*> GameObject::GetComponentList()
+{
+	return componentList;
 }
 
 bool GameObject::isDestroy()

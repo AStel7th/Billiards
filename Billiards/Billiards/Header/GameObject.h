@@ -5,6 +5,8 @@
 
 using namespace std;
 
+class Component;
+
 template<class TYPE = GameObject*>
 class _GameObject_
 {
@@ -31,11 +33,10 @@ enum DestroyMode
 class GameObject : public _GameObject_<>
 {
 private:
-	GameObject*			pPrev;	//自身の前ポインタ
-	GameObject*			pNext;	//自身の後ポインタ
-
-	DestroyMode	mode;		//消去手段
-							
+	GameObject*		pPrev;	//自身の前ポインタ
+	GameObject*		pNext;	//自身の後ポインタ
+	DestroyMode		mode;	//消去手段
+	vector<Component*> componentList;
 	//システムへの登録
 	static inline void _Register_(GameObject* pObj);
 
@@ -51,10 +52,14 @@ protected:
 	
 	virtual void Destroy();
 public:
-	float posX, posY, posZ;
-	float rotX, rotY, rotZ;
+	XMFLOAT3 pos;
+	XMFLOAT3 rot;
 
 	GameObject(const GameObject & gameObject) = delete;
+
+	void AddComponent(Component* pCom);
+
+	vector<Component*> GetComponentList();
 
 	virtual bool isDestroy();
 
@@ -71,4 +76,17 @@ template <class TYPE, typename ... ARGS>
 static TYPE* Create(ARGS && ... args)
 {
 	return NEW TYPE(std::forward<ARGS>(args) ...);
+}
+
+template<class T>
+static T* GetComponent(GameObject* pObj)
+{
+	for each (Component* var in pObj->GetComponentList())
+	{
+		// static_castでキャストするため、事前に型確認が必要
+		if (var->id == typeid(T*))
+			return static_cast<T*>(var);
+	}
+
+	return nullptr;
 }
