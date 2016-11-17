@@ -26,6 +26,121 @@ public:
 		FLOAT radius;
 	}SPHERE;
 
+
+	///////////////////////////////////////////////////
+	// パーティクル衝突判定・時刻・位置算出関数
+	//   rA          : パーティクルAの半径
+	//   rB          : パーティクルBの半径
+	//   pre_pos_A   : パーティクルAの前の位置
+	//   pos_A       : パーティクルAの次の到達位置
+	//   pre_pos_B   : パーティクルBの前位置
+	//   pos_B       : パーティクルBの次の到達位置
+	//   pout_t      : 衝突時間を格納するFLOAT型へのポインタ
+	//   pout_colli_A : パーティクルAの衝突位置を格納するD3DXVECTOR型へのポインタ
+	//   pout_colli_B : パーティクルAの衝突位置を格納するD3DXVECTOR型へのポインタ
+
+	static bool CheckParticleCollision(
+		FLOAT rA, FLOAT rB,
+		XMVECTOR *pPre_pos_A, XMVECTOR *pPos_A,
+		XMVECTOR *pPre_pos_B, XMVECTOR *pPos_B,
+		FLOAT *pOut_t,
+		XMVECTOR *pOut_colli_A,
+		XMVECTOR *pOut_colli_B
+	)
+	{
+		// 前位置及び到達位置におけるパーティクル間のベクトルを算出
+		XMVECTOR C0 = *pPre_pos_B - *pPre_pos_A;
+		XMVECTOR C1 = *pPos_B - *pPos_A;
+		XMVECTOR D = C1 - C0;
+
+		// 衝突判定用の2次関数係数の算出
+		FLOAT P;
+		XMStoreFloat(&P,XMVector3LengthSq(D)); 
+		if (P <= 0) 
+			return false; // 同じ方向に移動
+
+		FLOAT Q;
+		XMStoreFloat(&Q,XMVector3Dot(C0, D)); 
+		if (Q == 0) 
+			return false; // 平行
+
+		FLOAT R;
+		XMStoreFloat(&R, XMVector3LengthSq(C0));
+
+		// パーティクル距離
+		FLOAT r = rA + rB;
+
+		// 衝突判定式
+		FLOAT Judge = Q*Q - P*(R - r*r);
+		if (Judge < 0) {
+			// 衝突していない
+			return false;
+		}
+
+		// 衝突時間の算出
+		FLOAT t_plus = (-Q + sqrt(Judge)) / P;
+		FLOAT t_minus = (-Q - sqrt(Judge)) / P;
+
+		// 衝突時間が0未満1より大きい場合、衝突しない
+		//   if( (t_plus < 0 || t_plus > 1) && (t_minus < 0 || t_minus > 1)) return false;
+		if (t_minus < 0 || t_minus > 1) return false;
+
+		// 衝突時間の決定（t_minus側が常に最初の衝突）
+		*pOut_t = t_minus;
+
+		// 衝突位置の決定
+		*pOut_colli_A = *pPre_pos_A + t_minus * (*pPos_A - *pPre_pos_A);
+		*pOut_colli_B = *pPre_pos_B + t_minus * (*pPos_B - *pPre_pos_B);
+
+		return true; // 衝突報告
+	}
+
+
+	///////////////////////////////////////////////////
+	// パーティクル衝突後速度位置算出関数
+	//   pColliPos_A : 衝突中のパーティクルAの中心位置
+	//   pVelo_A     : 衝突の瞬間のパーティクルAの速度
+	//   pColliPos_B : 衝突中のパーティクルBの中心位置
+	//   pVelo_B     : 衝突の瞬間のパーティクルBの速度
+	//   weight_A    : パーティクルAの質量
+	//   weight_B    : パーティクルBの質量
+	//   res_A       : パーティクルAの反発率
+	//   res_B       : パーティクルBの反発率
+	//   time        : 反射後の移動可能時間
+	//   pOut_pos_A  : パーティクルAの反射後位置
+	//   pOut_velo_A : パーティクルAの反射後速度ベクトル
+	//   pOut_pos_B  : パーティクルBの反射後位置
+	//   pOut_velo_B : パーティクルBの反射後速度ベクトル
+	static bool CalcParticleColliAfterPos(
+		XMVECTOR *pColliPos_A, XMVECTOR *pVelo_A,
+		XMVECTOR *pColliPos_B, XMVECTOR *pVelo_B,
+		FLOAT weight_A, FLOAT weight_B,
+		FLOAT res_A, FLOAT res_B,
+		FLOAT time,
+		XMVECTOR *pOut_pos_A, XMVECTOR *pOut_velo_A,
+		XMVECTOR *pOut_pos_B, XMVECTOR *pOut_velo_B
+	)
+	{
+		FLOAT TotalWeight = weight_A + weight_B; // 質量の合計
+		FLOAT RefRate = (1 + res_A*res_B); // 反発率
+		XMVECTOR C = *pColliPos_B - *pColliPos_A; // 衝突軸ベクトル
+		C = XMVector3Normalize(C);
+		FLOAT Dot;
+		XMStoreFloat(&Dot,XMVector3Dot((*pVelo_A - *pVelo_B), C)); // 内積算出
+		XMVECTOR ConstVec = RefRate*Dot / TotalWeight * C; // 定数ベクトル
+
+															  // 衝突後速度ベクトルの算出
+		*pOut_velo_A = -weight_B * ConstVec + *pVelo_A;
+		*pOut_velo_B = weight_A * ConstVec + *pVelo_B;
+
+		// 衝突後位置の算出
+		*pOut_pos_A = *pColliPos_A + time * (*pOut_velo_A);
+		*pOut_pos_B = *pColliPos_B + time * (*pOut_velo_B);
+
+		return true;
+	}
+
+
 	//AABB同士のあたり判定
 	static bool HitCheckAABB(const AABB& rcAABB1, const XMVECTOR& v,     // obj1の情報
 		const AABB& rcAABB2, const XMVECTOR& v1)  // obj2の情報
@@ -145,7 +260,7 @@ public:
 	//	XMVECTOR *パーティクルの前の位置, XMVECTOR *パーティクルの次の到達位置,
 	//	XMVECTOR *平面の法線, XMVECTOR *平面上の1点,
 	//	FLOAT *衝突時間を格納するFLOAT型へのポインタ,
-	//	XMVECTOR *パーティクルの衝突位置を格納するD3DXVECTOR型へのポインタ
+	//	XMVECTOR *パーティクルの衝突位置を格納するXMVECTOR型へのポインタ
 	//)
 	static bool HitCheckSphereAndPlane(
 		FLOAT r,
@@ -200,15 +315,17 @@ public:
 		return false;
 	}
 
+
+	// 球とポリゴンの衝突判定
 	static bool SpherePolygonCollision(
 		FLOAT r,
 		XMVECTOR *pPre_pos, XMVECTOR *pPos,
-		XMVECTOR *pNormal, XMVECTOR *pPlane_pos,
+		XMVECTOR *pNormal, XMVECTOR pPlane_pos[3],
 		FLOAT *t,
 		XMVECTOR *pOut_colli
 	)
 	{
-		XMVECTOR C0 = *pPre_pos - *pPlane_pos; // 平面上の一点から現在位置へのベクトル
+		XMVECTOR C0 = *pPre_pos - pPlane_pos[0]; // 平面上の一点から現在位置へのベクトル
 		XMVECTOR D = *pPos - *pPre_pos; // 現在位置から予定位置までのベクトル
 		XMVECTOR N = XMVector3Normalize(*pNormal); // 法線を標準化
 
@@ -238,6 +355,9 @@ public:
 		// 衝突位置の算出
 		*pOut_colli = *pPre_pos + (*t) * D;
 
+		if (!PointInPolygon(pOut_colli, &pPlane_pos))
+			return false;
+
 		// めり込んでいたら衝突として処理終了
 		if (dist_plane_to_point < r)
 			return true;
@@ -251,5 +371,39 @@ public:
 			return true;
 
 		return false;
+	}
+
+
+	// ポリゴンの中に衝突点があるかチェック
+	static bool PointInPolygon(XMVECTOR *pInPolyPos, XMVECTOR *pPlane_pos[3])
+	{
+		XMVECTOR AB = *pPlane_pos[1] - *pPlane_pos[0];
+		XMVECTOR BP = *pInPolyPos - *pPlane_pos[1];
+
+		XMVECTOR BC = *pPlane_pos[2] - *pPlane_pos[1];
+		XMVECTOR CP = *pInPolyPos - *pPlane_pos[2];
+		
+		XMVECTOR CA = *pPlane_pos[0] - *pPlane_pos[2];
+		XMVECTOR AP = *pInPolyPos - *pPlane_pos[0];
+
+		XMVECTOR cross1 = XMVector3Cross(AB, BP);
+		XMVECTOR cross2 = XMVector3Cross(BC, CP);
+		XMVECTOR cross3 = XMVector3Cross(CA, AP);
+
+
+		//内積で順方向か逆方向か調べる
+		float dot12;
+		XMStoreFloat(&dot12, XMVector3Dot(cross1, cross2));
+		float dot13;
+		XMStoreFloat(&dot13, XMVector3Dot(cross1, cross3));
+
+
+		if (dot12 > 0 && dot13 > 0) 
+		{
+			//三角形の内側に点がある
+			return true;
+		}
+		else
+			return false;
 	}
 };
