@@ -1,7 +1,7 @@
 #include "../Header/DrawFPS.h"
 #include "../Header/DebugFont.h"
 
-DrawFPS::DrawFPS() : GameObject(CALL_TAG::BALL)
+DrawFPS::DrawFPS() : GameObject()
 {
 	pFPS = NEW UFPS();
 	pFPS->CreateMesh();

@@ -48,8 +48,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		}
 	}
 
-	//Task::All::Clear();
-	GameObjectManager::AllClear();
+	GameObject::All::Clear();
 
 	return (int)msg.wParam;
 }

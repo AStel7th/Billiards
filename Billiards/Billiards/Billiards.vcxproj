@@ -160,6 +160,7 @@
   <ItemGroup>
     <ClCompile Include="cpp\BilliardsTable.cpp" />
     <ClCompile Include="cpp\BilliardsTablePhysicsComponent.cpp" />
+    <ClCompile Include="cpp\Collider.cpp" />
     <ClCompile Include="cpp\CollisionFromFBX.cpp" />
     <ClCompile Include="cpp\FBXLoader.cpp" />
     <ClCompile Include="cpp\FBXRendererDX11.cpp" />
@@ -171,6 +172,7 @@
     <ClCompile Include="cpp\GraphicsPipeline.cpp" />
     <ClCompile Include="cpp\main.cpp" />
     <ClCompile Include="cpp\ResourceManager.cpp" />
+    <ClCompile Include="cpp\SpaceDivision.cpp" />
     <ClCompile Include="cpp\Sprite.cpp" />
     <ClCompile Include="cpp\TimeControl.cpp" />
     <ClCompile Include="cpp\DebugFont.cpp" />
@@ -179,6 +181,7 @@
     <ClInclude Include="Header\BilliardsTable.h" />
     <ClInclude Include="Header\BilliardsTablePhysicsComponent.h" />
     <ClInclude Include="Header\Camera.h" />
+    <ClInclude Include="Header\Collider.h" />
     <ClInclude Include="Header\Collision.h" />
     <ClInclude Include="Header\CollisionFromFBX.h" />
     <ClInclude Include="Header\Component.h" />
@@ -196,6 +199,7 @@
     <ClInclude Include="Header\GraphicsPipeline.h" />
     <ClInclude Include="Header\ResourceManager.h" />
     <ClInclude Include="Header\Shader.h" />
+    <ClInclude Include="Header\SpaceDivision.h" />
     <ClInclude Include="Header\Sprite.h" />
     <ClInclude Include="Header\TimeControl.h" />
     <ClInclude Include="Header\DebugFont.h" />

@@ -109,7 +109,7 @@ void CollisionFromFBX::CopyVertexData(FbxMesh*	pMesh, FBX_COLLISION_NODE* meshNo
 			int indexPos = pMesh->GetPolygonVertex(i, j);
 
 			//index
-			meshNode->m_indexArray.push_back(index); index++;
+			meshNode->m_indexArray.push_back(indexPos); index++;
 			//pos       
 			pos = lControlPoints[indexPos];
 
@@ -217,7 +217,7 @@ HRESULT CollisionFromFBX::VertexConstruction(FBX_COLLISION_NODE & fbxNode, NODE_
 		for (int j = 0; j < 3; j++)
 		{
 			COLLISION_VERTEX_DATA vertexData;
-			FBX_VERTEX_DATA_COL data = fbxNode.m_vertexDataArray[i];
+			FBX_VERTEX_DATA_COL data = fbxNode.m_vertexDataArray[fbxNode.m_indexArray[i * 3 + j]];
 			vertexData.vPos = DirectX::XMFLOAT3((float)data.pos.mData[0],
 				(float)data.pos.mData[1],
 				(float)data.pos.mData[2]);

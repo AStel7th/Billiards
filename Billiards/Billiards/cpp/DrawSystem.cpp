@@ -199,7 +199,7 @@ bool DrawSystem::Draw()
 		d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutUV1.Get());
 
 		//TaskDraw::All::Draw(GROUP_DRAW_OPACITY);
-		GameObjectManager::Draw(CALL_TAG::TABLE);
+		//GameObjectManager::Draw(CALL_TAG::TABLE);
 	}
 
 	{
