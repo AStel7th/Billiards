@@ -84,8 +84,13 @@ static T* GetComponent(GameObject* pObj)
 	for each (Component* var in pObj->GetComponentList())
 	{
 		// static_castでキャストするため、事前に型確認が必要
-		if (var->id == typeid(T*))
-			return static_cast<T*>(var);
+		for each (type_index value in var->id)
+		{
+			const char* a = value.name();
+			const char* b = typeid(T*).name();
+			if (value == typeid(T*))
+				return static_cast<T*>(var);
+		}
 	}
 
 	return nullptr;

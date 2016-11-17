@@ -1,5 +1,6 @@
 #pragma once
 #include <DirectXMath.h>
+#include <vector>
 #include <typeindex>
 
 using namespace std;
@@ -10,8 +11,8 @@ class GameObject;
 class Component
 {
 public:
-	type_index id;
-	Component() : id(typeid(nullptr)){}
+	vector<type_index> id;
+	Component(){}
 	virtual ~Component() {}
 	virtual void receive(int message) = 0;
 };
@@ -32,7 +33,10 @@ public:
 	XMFLOAT3 acceleration;	// ‰Á‘¬“x
 	float	 mass;			// Ž¿—Ê
 
-	PhysicsComponent(): Component(),prePos(0.0f,0.0f,0.0f),velocity(0.0f, 0.0f, 0.0f),acceleration(0.0f, 0.0f, 0.0f),mass(0.0f){}
+	PhysicsComponent(): Component(), pGameObject(nullptr),prePos(0.0f,0.0f,0.0f),velocity(0.0f, 0.0f, 0.0f),acceleration(0.0f, 0.0f, 0.0f),mass(0.0f)
+	{
+		id.push_back(typeid(this));
+	}
 
 	virtual ~PhysicsComponent(){}
 	virtual void Update() = 0;
@@ -41,6 +45,13 @@ public:
 class GraphicsComponent : public Component
 {
 public:
+	GameObject* pGameObject;
+
+	GraphicsComponent() : Component(), pGameObject(nullptr)
+	{
+		id.push_back(typeid(this));
+	}
+
 	virtual ~GraphicsComponent(){}
 	virtual void Update() = 0;
 };
