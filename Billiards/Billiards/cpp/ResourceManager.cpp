@@ -9,11 +9,6 @@ ResourceManager::ResourceManager()
 
 ResourceManager::~ResourceManager()
 {
-	for each (pair<string,FBXLoader*> var in modelList)
-	{
-		SAFE_DELETE(var.second);
-	}
-
 	modelList.clear();
 }
 
@@ -22,28 +17,46 @@ bool ResourceManager::Init()
 	return true;
 }
 
-void ResourceManager::GetResource(FBXRenderDX11& outModel, const string & name, const char* filename)
+MeshData* ResourceManager::GetResource(const string & name, const char* filename)
 {
 	// オブジェクトIDチェック
-	map<string, FBXLoader*>::iterator modelName = modelList.find(name);
+	map<string, ModelData>::iterator modelName = modelList.find(name);
 
 	// IDがなければ追加
 	if (modelName == modelList.end())
 	{
 		if (filename == nullptr)
-			return;
-
+			return nullptr;
+		
 		FBXLoader* modelData = NEW FBXLoader();
-		modelData->LoadFBX(filename);
-		outModel.LoadFBX(modelData);
+		MeshData data = modelData->LoadFBX(filename,name);
+
+		ModelData model;
+		model.meshData = data;
+		model.refCnt = 1;
 
 		// 新しいID内要素マップを作成
-		modelList.insert(make_pair(name, modelData));
+		modelList.insert(make_pair(name, model));
+
+		SAFE_DELETE(modelData);
+
+		return &modelList[name].meshData;
 	}
 	else
 	{
-		// IDがあれば既存のものを渡す
-		outModel.LoadFBX(modelName->second);
+		modelName->second.refCnt++;
 	}
+
+	return &modelName->second.meshData;
+}
+
+int ResourceManager::GetRefCount(const string & name)
+{
+	return modelList[name].refCnt;
+}
+
+void ResourceManager::ReduceReference(const string & name)
+{
+	modelList[name].refCnt--;
 }
 
