@@ -13,8 +13,11 @@
 
 #include <fbxsdk.h>
 #include <Windows.h>
-
+#include <string>
+#include "../DirectXTex/WICTextureLoader.h"
+#include "../DirectXTex/DirectXTex.h"
 #include "FBXInitialize.h"
+#include "MeshData.h"
 
 using namespace std;
 using namespace Microsoft::WRL;
@@ -175,21 +178,33 @@ class FBXLoader
 {
 public:
 	
-protected:
-	unique_ptr<FBX> fbx;
+private:
+	FBX* pFbx;
+	int faceCount;
 
 	std::vector<FBX_MESH_NODE>		m_meshNodeArray;
 
-	void SetupNode(FbxNode* pNode, std::string parentName);
-	void Setup();
+	vector<VERTEX_DATA> vDataArray;
+	vector<BONE_DATA_PER_VERTEX> vbDataArray;
+	vector<int> indexes;
 
-	void CopyVertexData(FbxMesh*	pMesh, FBX_MESH_NODE* meshNode, FbxDouble3 translation, FbxDouble3 scale, FbxDouble3 rotation);
-	void CopyMatrialData(FbxSurfaceMaterial* mat, FBX_MATERIAL_NODE* destMat);
-	void CopyBoneData(FbxMesh*	pMesh, FBX_MESH_NODE* meshNode);
+	void SetupNode(FbxNode* pNode, std::string parentName, MeshData& mData);
+	void Setup(MeshData& mData);
 
-	void ComputeNodeMatrix(FbxNode* pNode, FBX_MESH_NODE* meshNode);
+	void CopyVertexData(FbxMesh*	pMesh, MESH* mesh, FbxDouble3 translation, FbxDouble3 scale, FbxDouble3 rotation);
+	void CopyMatrialData(FbxSurfaceMaterial* mat, MESH* mesh, int indexCnt,vector<int>& indexArray,MaterialData& data);
+	void CopyBoneData(FbxMesh*	pMesh, MESH* mesh, vector<POLY_TABLE>& pPolyTable);
 
-	void SetFbxColor(FBX_MATRIAL_ELEMENT& destColor, const FbxDouble3 srcColor);
+	XMFLOAT3& GetNormal(FbxMesh*	pMesh, int index);
+	XMFLOAT2& GetUV(FbxMesh*	pMesh, int index, MESH* mesh, int polyNum, int inPolyPos);
+	vector<POLY_TABLE>& GetPolyTable(FbxMesh*	pMesh, MESH* mesh, vector<POLY_TABLE>& outArray);
+
+	HRESULT CreateVertexBuffer(ID3D11Buffer** pBuffer, void* pVertices, uint32_t stride, uint32_t vertexCount);
+	HRESULT CreateIndexBuffer(DWORD dwSize, int* pIndex, ID3D11Buffer** ppIndexBuffer);
+
+	void ComputeNodeMatrix(FbxNode* pNode, MESH* meshNode);
+
+	void SetFbxColor(XMFLOAT4& data, const FbxDouble3 srcColor);
 	FbxDouble3 GetMaterialProperty(
 		const FbxSurfaceMaterial * pMaterial,
 		const char * pPropertyName,
@@ -203,7 +218,7 @@ public:
 	void Release();
 
 	// ì«Ç›çûÇ›
-	HRESULT LoadFBX(const char* filename);
+	MeshData LoadFBX(const char* filename, string modelName);
 	FbxNode&	GetRootNode();
 
 	size_t GetNodesCount() { return m_meshNodeArray.size(); };		// ÉmÅ[ÉhêîÇÃéÊìæ
