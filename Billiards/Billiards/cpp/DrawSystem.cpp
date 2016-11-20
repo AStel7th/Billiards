@@ -1,6 +1,10 @@
 #include "../Header/DrawSystem.h"
 #include "../Header/Camera.h"
 #include "../Header/Effect.h"
+#include "../Header/Component.h"
+#include "../Header/ResourceManager.h"
+#include "../Header/MeshData.h"
+#include "../Header/MaterialData.h"
 
 
 DrawSystem::DrawSystem()
@@ -172,15 +176,6 @@ bool DrawSystem::Draw()
 	d3d11.pD3DDeviceContext->OMSetBlendState(pBlendState.Get(), blendFactors, 0xffffffff);
 	d3d11.pD3DDeviceContext->OMSetDepthStencilState(pDepthStencilState.Get(), 0);
 
-	//{
-	//	d3d11.pD3DDeviceContext->RSSetState(pRSnoCull.Get());			//頂点カラーは表裏なしのため両面描画に変更
-	//	d3d11.pD3DDeviceContext->VSSetShader(pPlaneVS_UV->GetShader(), NULL, 0);
-	//	d3d11.pD3DDeviceContext->PSSetShader(pPlanePS_UV->GetShader(), NULL, 0);
-	//	d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutUV2.Get());
-
-	//	TaskDraw::All::Draw(GROUP_DRAW_PLANE_UV);
-	//}
-
 	D3D11_MAPPED_SUBRESOURCE pData;
 	if (SUCCEEDED(d3d11.pD3DDeviceContext->Map(pcBuffer0.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &pData)))
 	{
@@ -193,35 +188,29 @@ bool DrawSystem::Draw()
 	d3d11.pD3DDeviceContext->VSSetConstantBuffers(0, 1, pcBuffer0.GetAddressOf());
 	d3d11.pD3DDeviceContext->PSSetConstantBuffers(0, 1, pcBuffer0.GetAddressOf());
 
-	{
-		d3d11.pD3DDeviceContext->VSSetShader(pvsFBX->GetShader(), NULL, 0);
-		d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), NULL, 0);
-		d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutUV1.Get());
+	d3d11.pD3DDeviceContext->VSSetShader(pvsFBX->GetShader(), NULL, 0);
+	d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), NULL, 0);
+	d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutUV1.Get());
 
-		//TaskDraw::All::Draw(GROUP_DRAW_OPACITY);
-		//GameObjectManager::Draw(CALL_TAG::TABLE);
+	for (auto it = opaqueDrawList[DRAW_PATTERN::STATIC_MESH].begin(); it != opaqueDrawList[DRAW_PATTERN::STATIC_MESH].end(); ++it)
+	{
+		if (ResourceManager::Instance().GetRefCount((*it)->pMeshData->GetName()) > 1)
+			DrawStaticMeshInstance(*it);
+		else
+			DrawStaticMesh(*it);
 	}
 
+	d3d11.pD3DDeviceContext->VSSetShader(pvsFBXAnimation->GetShader(), NULL, 0);
+	d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), NULL, 0);
+	d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutUV.Get());
+
+	for (auto it = opaqueDrawList[DRAW_PATTERN::ANIMATION].begin(); it != opaqueDrawList[DRAW_PATTERN::ANIMATION].end(); ++it)
 	{
-		d3d11.pD3DDeviceContext->VSSetShader(pvsFBXAnimation->GetShader(), NULL, 0);
-		d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), NULL, 0);
-		d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutUV.Get());
-
-		//TaskDraw::All::Draw(GROUP_DRAW_OPACITY_ANIMATION);
+		if (ResourceManager::Instance().GetRefCount((*it)->pMeshData->GetName()) > 1)
+			DrawAnimationInstance(*it);
+		else
+			DrawAnimation(*it);
 	}
-
-	{
-		d3d11.pD3DDeviceContext->RSSetState(pRSnoCull.Get());			//頂点カラーは表裏なしのため両面描画に変更
-		d3d11.pD3DDeviceContext->VSSetShader(pvsVertexColor->GetShader(), NULL, 0);
-		d3d11.pD3DDeviceContext->PSSetShader(ppsVertexColor->GetShader(), NULL, 0);
-		d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutColor.Get());
-
-		//TaskDraw::All::Draw(GROUP_DRAW_VERTEXCOLOR);
-
-		d3d11.pD3DDeviceContext->RSSetState(pRS.Get());
-	}
-
-	//TaskDraw::All::Draw(GROUP_DRAW_SPRITE);
 
 	//EffectManager::Instance().Draw();
 
@@ -233,6 +222,211 @@ bool DrawSystem::Draw()
 	d3d11.Present(1, 0);
 
 	return true;
+}
+
+void DrawSystem::DrawAnimation(GraphicsComponent* pGC)
+{
+	// FBX Modelのnode数を取得
+	size_t nodeCount = pGC->pMeshData->GetMeshCount();
+
+	// 全ノードを描画
+	for (int j = 0; j<nodeCount; j++)
+	{
+		MESH mesh = pGC->pMeshData->GetMeshList()[j];
+
+		D3D11_MAPPED_SUBRESOURCE MappedResource;
+		d3d11.pD3DDeviceContext->Map(pcBuffer1.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
+
+		CBMATRIX*	cbFBX = (CBMATRIX*)MappedResource.pData;
+
+		XMMATRIX _world = XMLoadFloat4x4(&pGC->world);
+		XMMATRIX _view = XMLoadFloat4x4(&view);
+		XMMATRIX _proj = XMLoadFloat4x4(&proj);
+		XMMATRIX _local = XMLoadFloat4x4(&mesh.mLocal);
+
+		// 左手系
+		cbFBX->mWorld = pGC->world;
+		cbFBX->mView = view;
+		cbFBX->mProj = proj;
+
+		XMStoreFloat4x4(&cbFBX->mWVP, XMMatrixTranspose(/*local**/_world*_view*_proj));
+
+		d3d11.pD3DDeviceContext->Unmap(pcBuffer1.Get(), 0);
+
+		d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBuffer1.GetAddressOf());
+
+		pGC->pMeshData->SetAnimationFrame(j, pGC->frame);
+
+		//MATERIAL_DATA material = GetNodeMaterial(j);
+
+		//if (material.pMaterialCb)
+		//	d3d11.pD3DDeviceContext->UpdateSubresource(material.pMaterialCb.Get(), 0, NULL, &material.materialConstantData, 0, 0);
+
+		////pDirect3D11->pD3DDeviceContext->VSSetShaderResources(0, 1, &g_pTransformSRV);
+		//d3d11.pD3DDeviceContext->PSSetShaderResources(0, 1, material.pSRV.GetAddressOf());
+		//d3d11.pD3DDeviceContext->PSSetConstantBuffers(0, 1, material.pMaterialCb.GetAddressOf());
+		//d3d11.pD3DDeviceContext->PSSetSamplers(0, 1, material.pSampler.GetAddressOf());
+
+		
+
+		//フレームを進めたことにより変化したポーズ（ボーンの行列）をシェーダーに渡す
+		D3D11_MAPPED_SUBRESOURCE pData;
+		if (SUCCEEDED(d3d11.pD3DDeviceContext->Map(pcBoneBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &pData)))
+		{
+			SHADER_GLOBAL_BONES sg;
+			for (int i = 0; i < mesh.boneCount; i++)
+			{
+				XMMATRIX local = XMLoadFloat4x4(&mesh.mLocal);
+				XMMATRIX mat = local * XMLoadFloat4x4(&/*node->mLocal**/pGC->pMeshData->GetCurrentPose(&mesh, i));
+				mat = XMMatrixTranspose(mat);
+				XMStoreFloat4x4(&sg.mBone[i], mat);
+			}
+			memcpy_s(pData.pData, pData.RowPitch, (void*)&sg, sizeof(SHADER_GLOBAL_BONES));
+			d3d11.pD3DDeviceContext->Unmap(pcBoneBuffer.Get(), 0);
+		}
+
+		d3d11.pD3DDeviceContext->VSSetConstantBuffers(2, 1, pcBoneBuffer.GetAddressOf());
+		d3d11.pD3DDeviceContext->PSSetConstantBuffers(2, 1, pcBoneBuffer.GetAddressOf());
+
+		UINT stride = sizeof(VERTEX_DATA);
+		UINT offset = 0;
+		d3d11.pD3DDeviceContext->IASetVertexBuffers(0, 1, mesh.pVB.GetAddressOf(), &stride, &offset);
+
+		//マテリアルの数だけ、それぞれのマテリアルのインデックスバッファ－を描画
+		for (int i = 0; i<mesh.materialCount; i++)
+		{
+			MaterialData material = *mesh.materialData[i];
+
+			//使用されていないマテリアル対策
+			if (material.faceCount == 0)
+			{
+				continue;
+			}
+			//インデックスバッファーをセット
+			stride = sizeof(int);
+			offset = 0;
+			d3d11.pD3DDeviceContext->IASetIndexBuffer(mesh.pIB[i].Get(), DXGI_FORMAT_R32_UINT, 0);
+
+			d3d11.pD3DDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+			if (material.pMaterialCb)
+				d3d11.pD3DDeviceContext->UpdateSubresource(material.pMaterialCb.Get(), 0, NULL, &material.materialConstantData, 0, 0);
+
+			d3d11.pD3DDeviceContext->VSSetConstantBuffers(3, 1, material.pMaterialCb.GetAddressOf());
+			d3d11.pD3DDeviceContext->PSSetConstantBuffers(3, 1, material.pMaterialCb.GetAddressOf());
+
+			if (material.pSRV != nullptr)
+			{
+				d3d11.pD3DDeviceContext->PSSetShaderResources(0, 1, material.pSRV.GetAddressOf());
+				d3d11.pD3DDeviceContext->PSSetSamplers(0, 1, material.pSampler.GetAddressOf());
+			}
+
+			//Draw
+			d3d11.pD3DDeviceContext->DrawIndexed(material.faceCount * 3, 0, 0);
+		}
+		//}
+	}
+
+}
+
+void DrawSystem::DrawStaticMesh(GraphicsComponent * pGC)
+{
+	// FBX Modelのnode数を取得
+	size_t nodeCount = pGC->pMeshData->GetMeshCount();
+
+	// 全ノードを描画
+	for (int j = 0; j<nodeCount; j++)
+	{
+		MESH mesh = pGC->pMeshData->GetMeshList()[j];
+
+		if (mesh.pVB == nullptr)
+			continue;
+
+		D3D11_MAPPED_SUBRESOURCE MappedResource;
+		d3d11.pD3DDeviceContext->Map(pcBuffer1.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
+
+		CBMATRIX*	cbFBX = (CBMATRIX*)MappedResource.pData;
+
+		XMMATRIX _world = XMLoadFloat4x4(&pGC->world);
+		XMMATRIX _view = XMLoadFloat4x4(&view);
+		XMMATRIX _proj = XMLoadFloat4x4(&proj);
+		XMMATRIX _local = XMLoadFloat4x4(&mesh.mLocal);
+
+		// 左手系
+		cbFBX->mWorld = pGC->world;
+		cbFBX->mView = view;
+		cbFBX->mProj = proj;
+
+		XMStoreFloat4x4(&cbFBX->mWVP, XMMatrixTranspose(/*local**/_world*_view*_proj));
+
+		d3d11.pD3DDeviceContext->Unmap(pcBuffer1.Get(), 0);
+
+		d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBuffer1.GetAddressOf());
+
+		UINT stride = sizeof(VERTEX_DATA);
+		UINT offset = 0;
+		d3d11.pD3DDeviceContext->IASetVertexBuffers(0, 1, mesh.pVB.GetAddressOf(), &stride, &offset);
+
+		//マテリアルの数だけ、それぞれのマテリアルのインデックスバッファ－を描画
+		for (int i = 0; i<mesh.materialCount; i++)
+		{
+			MaterialData material = *mesh.materialData[i];
+
+			//使用されていないマテリアル対策
+			if (material.faceCount == 0)
+			{
+				continue;
+			}
+			//インデックスバッファーをセット
+			stride = sizeof(int);
+			offset = 0;
+			d3d11.pD3DDeviceContext->IASetIndexBuffer(mesh.pIB[i].Get(), DXGI_FORMAT_R32_UINT, 0);
+
+			d3d11.pD3DDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+			if (material.pMaterialCb)
+				d3d11.pD3DDeviceContext->UpdateSubresource(material.pMaterialCb.Get(), 0, NULL, &material.materialConstantData, 0, 0);
+
+			d3d11.pD3DDeviceContext->VSSetConstantBuffers(3, 1, material.pMaterialCb.GetAddressOf());
+			d3d11.pD3DDeviceContext->PSSetConstantBuffers(3, 1, material.pMaterialCb.GetAddressOf());
+
+			if (material.pSRV != nullptr)
+			{
+				d3d11.pD3DDeviceContext->PSSetShaderResources(0, 1, material.pSRV.GetAddressOf());
+				d3d11.pD3DDeviceContext->PSSetSamplers(0, 1, material.pSampler.GetAddressOf());
+			}
+
+			//Draw
+			d3d11.pD3DDeviceContext->DrawIndexed(material.faceCount * 3, 0, 0);
+		}
+		//}
+	}
+}
+
+void DrawSystem::DrawAnimationInstance(GraphicsComponent * pGC)
+{
+}
+
+void DrawSystem::DrawStaticMeshInstance(GraphicsComponent * pGC)
+{
+}
+
+void DrawSystem::AddDrawList(DRAW_PRIOLITY priolity, DRAW_PATTERN pattern, GraphicsComponent* pGC)
+{
+	if(priolity == DRAW_PRIOLITY::Opaque)
+		opaqueDrawList[pattern].push_back(pGC);
+	else if(priolity == DRAW_PRIOLITY::Alpha)
+		alphaDrawList[pattern].push_back(pGC);
+}
+
+void DrawSystem::SetView(XMFLOAT4X4 * v)
+{
+	view = *v;
+}
+
+void DrawSystem::SetProjection(XMFLOAT4X4 * p)
+{
+	proj = *p;
 }
 
 ID3D11Buffer* DrawSystem::GetCBuffer(int i)
