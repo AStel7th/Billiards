@@ -6,12 +6,12 @@ class CollisionFromFBX;
 class BilliardsTablePhysics;
 class MeshCollider;
 class BilliardsTableGraphics;
+class MeshData;
 
 class BilliardsTable : public GameObject
 {
 private:
-	FBXRenderDX11*				pTableModel;
-	FBXRenderDX11*				pCollisionModel;
+	MeshData*					pMesh;
 	MeshCollider*				pCollider;
 	BilliardsTablePhysics*		pPhysicsComponent;
 	BilliardsTableGraphics*		pGraphicsComponent;

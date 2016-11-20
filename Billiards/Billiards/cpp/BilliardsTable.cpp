@@ -6,18 +6,19 @@
 #include "../Header/Collider.h"
 #include "../Header/BilliardsTablePhysics.h"
 #include "../Header/BilliardsTableGraphics.h"
+#include "../Header/MeshData.h"
 
 BilliardsTable::BilliardsTable() : GameObject()
 {
-	pTableModel = NEW FBXRenderDX11();
-	pCollisionModel = NEW FBXRenderDX11();
+	/*pTableModel = NEW FBXRenderDX11();
+	pCollisionModel = NEW FBXRenderDX11();*/
 
-	ResourceManager::Instance().GetResource(*pTableModel, "Table", "Resource/billiardsTable_light.fbx");
-	ResourceManager::Instance().GetResource(*pCollisionModel, "col", "Resource/billiardsTableCollider.fbx");
+	pMesh = ResourceManager::Instance().GetResource("Table", "Resource/billiardsTable_light.fbx");
+	//ResourceManager::Instance().GetResource(*pCollisionModel, "col", "Resource/billiardsTableCollider.fbx");
 
 	pPhysicsComponent = NEW BilliardsTablePhysics(this);
 
-	pGraphicsComponent = NEW BilliardsTableGraphics(this);
+	pGraphicsComponent = NEW BilliardsTableGraphics(this,pMesh);
 	
 	pCollider = NEW MeshCollider();
 	pCollider->Create(this,Mesh,"Resource/billiardsTableCollider.fbx" ,15.0f);
@@ -29,9 +30,10 @@ BilliardsTable::BilliardsTable() : GameObject()
 
 BilliardsTable::~BilliardsTable()
 {
+	ResourceManager::Instance().ReduceReference("Table");
 	pCollider->Destroy();
-	SAFE_DELETE(pTableModel);
-	SAFE_DELETE(pCollisionModel);
+	/*SAFE_DELETE(pTableModel);
+	SAFE_DELETE(pCollisionModel);*/
 	SAFE_DELETE(pPhysicsComponent);
 	SAFE_DELETE(pGraphicsComponent);
 }
@@ -42,9 +44,9 @@ void BilliardsTable::Update()
 
 	XMStoreFloat4x4(&m_World, XMLoadFloat4x4(&m_World)*XMMatrixRotationY(ang));
 
-	pTableModel->SetMatrix(m_World, Camera::Instance().view, Camera::Instance().proj);
+	/*pTableModel->SetMatrix(m_World, Camera::Instance().view, Camera::Instance().proj);
 
-	pCollisionModel->SetMatrix(m_World, Camera::Instance().view, Camera::Instance().proj);
+	pCollisionModel->SetMatrix(m_World, Camera::Instance().view, Camera::Instance().proj);*/
 
 	pPhysicsComponent->Update();
 
