@@ -172,6 +172,8 @@
     <ClCompile Include="cpp\GameObject.cpp" />
     <ClCompile Include="cpp\GraphicsPipeline.cpp" />
     <ClCompile Include="cpp\main.cpp" />
+    <ClCompile Include="cpp\MaterialData.cpp" />
+    <ClCompile Include="cpp\MeshData.cpp" />
     <ClCompile Include="cpp\ResourceManager.cpp" />
     <ClCompile Include="cpp\SpaceDivision.cpp" />
     <ClCompile Include="cpp\Sprite.cpp" />
@@ -199,6 +201,8 @@
     <ClInclude Include="Header\func.h" />
     <ClInclude Include="Header\GameObject.h" />
     <ClInclude Include="Header\GraphicsPipeline.h" />
+    <ClInclude Include="Header\MaterialData.h" />
+    <ClInclude Include="Header\MeshData.h" />
     <ClInclude Include="Header\ResourceManager.h" />
     <ClInclude Include="Header\Shader.h" />
     <ClInclude Include="Header\SpaceDivision.h" />
