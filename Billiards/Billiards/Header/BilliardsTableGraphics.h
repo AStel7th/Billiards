@@ -2,11 +2,12 @@
 #include "Component.h"
 
 class GameObject;
+class MeshData;
 
 class BilliardsTableGraphics : public GraphicsComponent
 {
 public:
-	BilliardsTableGraphics(GameObject* pObj);
+	BilliardsTableGraphics(GameObject* pObj,MeshData* mesh);
 	~BilliardsTableGraphics();
 
 	void Update();
