@@ -7,6 +7,7 @@ using namespace std;
 using namespace DirectX;
 
 class GameObject;
+class MeshData;
 
 class Component
 {
@@ -46,8 +47,11 @@ class GraphicsComponent : public Component
 {
 public:
 	GameObject* pGameObject;
+	MeshData* pMeshData;
+	XMFLOAT4X4 world;
+	int frame;
 
-	GraphicsComponent() : Component(), pGameObject(nullptr)
+	GraphicsComponent() : Component(), pGameObject(nullptr), pMeshData(nullptr)
 	{
 		id.push_back(typeid(this));
 	}
