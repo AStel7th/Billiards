@@ -20,6 +20,9 @@ Game::Game()
 	Camera::Instance().SetView(XMFLOAT3(0.0f, 20.0f, -20.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f));
 	Camera::Instance().SetProj(RADIAN(60.0f), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 1.0f, 2000.0f);
 
+	DrawSystem::Instance().SetView(&Camera::Instance().view);
+	DrawSystem::Instance().SetProjection(&Camera::Instance().proj);
+
 	//Camera::Instance().SetView(XMFLOAT3(0.0f, 0.0f, -50000.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f));
 	//Camera::Instance().SetProj(RADIAN(60.0f), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 1.0f, 200000.0f);
 
