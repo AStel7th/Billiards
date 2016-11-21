@@ -1,6 +1,7 @@
 #include "../Header/BilliardsTableGraphics.h"
 #include "../Header/GameObject.h"
 #include "../Header/DrawSystem.h"
+#include "../Header/MeshData.h"
 
 BilliardsTableGraphics::BilliardsTableGraphics(GameObject * pObj, MeshData* mesh)
 {
@@ -16,7 +17,7 @@ BilliardsTableGraphics::BilliardsTableGraphics(GameObject * pObj, MeshData* mesh
 
 	XMStoreFloat4x4(&world, _world);
 
-	DrawSystem::Instance().AddDrawList(DRAW_PRIOLITY::Opaque, DRAW_PATTERN::STATIC_MESH, this);
+	DrawSystem::Instance().AddDrawList(DRAW_PRIOLITY::Opaque, pMeshData->GetName(), this);
 }
 
 BilliardsTableGraphics::~BilliardsTableGraphics()
@@ -25,7 +26,7 @@ BilliardsTableGraphics::~BilliardsTableGraphics()
 
 void BilliardsTableGraphics::Update()
 {
-	frame++;
+	//frame++;
 }
 
 void BilliardsTableGraphics::receive(int message)
