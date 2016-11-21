@@ -14,7 +14,13 @@ DrawSystem::DrawSystem()
 
 DrawSystem::~DrawSystem()
 {
-
+	SAFE_DELETE(pvsFBX);
+	SAFE_DELETE(pvsFBXInstancing);
+	SAFE_DELETE(pvsFBXAnimInstancing);
+	SAFE_DELETE(pvsFBXAnimation);
+	SAFE_DELETE(ppsFBX);
+	SAFE_DELETE(ppsVertexColor);
+	SAFE_DELETE(ppsFBXAnimation);
 }
 
 // システムを初期化する
@@ -66,17 +72,22 @@ HRESULT DrawSystem::Init(unsigned int msaaSamples)
 		return E_FAIL;
 	}
 
-	pvsFBX = make_unique<VertexShader>(d3d11.pD3DDevice.Get(), L"HLSL/simpleRenderVS.hlsl", "vs_main");
-	pvsFBXInstancing = make_unique<VertexShader>(d3d11.pD3DDevice.Get(), L"HLSL/simpleRenderInstancingVS.hlsl", "vs_main");
-	pvsVertexColor = make_unique<VertexShader>(d3d11.pD3DDevice.Get(), L"HLSL/VertexColor.hlsl", "vs_main");
-	pvsFBXAnimation = make_unique<VertexShader>(d3d11.pD3DDevice.Get(), L"HLSL/FbxAnimation.hlsl", "VSSkin");
-	/*pPlaneVS_UV = make_unique<VertexShader>(d3d11.pD3DDevice.Get(), L"HLSL/Plane_UV.hlsl", "vs_main");
-	pPlanePS_UV = make_unique<PixelShader>(d3d11.pD3DDevice.Get(), L"HLSL/Plane_UV.hlsl", "ps_main");*/
-	ppsFBX = make_unique<PixelShader>(d3d11.pD3DDevice.Get(), L"HLSL/simpleRenderPS.hlsl", "PS");
-	ppsVertexColor = make_unique<PixelShader>(d3d11.pD3DDevice.Get(), L"HLSL/VertexColor.hlsl", "ps_main");
-	ppsFBXAnimation = make_unique<PixelShader>(d3d11.pD3DDevice.Get(), L"HLSL/FbxAnimation.hlsl", "PSSkin");
+	pvsFBX			 = NEW VertexShader(d3d11.pD3DDevice.Get(), L"HLSL/simpleRenderVS.hlsl", "vs_main");
+	pvsFBXInstancing = NEW VertexShader(d3d11.pD3DDevice.Get(), L"HLSL/simpleRenderInstancingVS.hlsl", "vs_main");
+	pvsFBXAnimInstancing = NEW VertexShader(d3d11.pD3DDevice.Get(), L"HLSL/AnimationInstance.hlsl", "VSSkin");
+	pvsFBXAnimation  = NEW VertexShader(d3d11.pD3DDevice.Get(), L"HLSL/FbxAnimation.hlsl", "VSSkin");
+	ppsFBX			 = NEW PixelShader(d3d11.pD3DDevice.Get(), L"HLSL/simpleRenderPS.hlsl", "PS");
+	ppsVertexColor	 = NEW PixelShader(d3d11.pD3DDevice.Get(), L"HLSL/VertexColor.hlsl", "ps_main");
+	ppsFBXAnimation  = NEW PixelShader(d3d11.pD3DDevice.Get(), L"HLSL/FbxAnimation.hlsl", "PSSkin");
 
-	D3D11_INPUT_ELEMENT_DESC layout_uv[] =
+	D3D11_INPUT_ELEMENT_DESC layout_staticMesh[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+
+	D3D11_INPUT_ELEMENT_DESC layout_Animation[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -85,42 +96,54 @@ HRESULT DrawSystem::Init(unsigned int msaaSamples)
 		{ "BONE_WEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	D3D11_INPUT_ELEMENT_DESC layout_uv2[] =
+	/*D3D11_INPUT_ELEMENT_DESC layout_staticMesh_instance[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "MATRIX",   0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,  0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "MATRIX",   1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 16, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "MATRIX",   2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 32, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "MATRIX",   3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 48, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
 	};
 
-	D3D11_INPUT_ELEMENT_DESC layout_color[] =
+	D3D11_INPUT_ELEMENT_DESC layout_Animation_instance[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT,  0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "BONE_INDEX", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "BONE_WEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "MATRIX",   0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,  0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "MATRIX",   1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 16, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "MATRIX",   2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 32, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "MATRIX",   3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 48, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+	};*/
 
 	// InputLayoutの作成
-	if (FAILED(d3d11.pD3DDevice->CreateInputLayout(layout_uv, ARRAYSIZE(layout_uv),
-		pvsFBXAnimation->GetByteCode()->GetBufferPointer(), pvsFBXAnimation->GetByteCode()->GetBufferSize(), &pInputLayoutUV)))
+	if (FAILED(d3d11.pD3DDevice->CreateInputLayout(layout_Animation, ARRAYSIZE(layout_Animation),
+		pvsFBXAnimation->GetByteCode()->GetBufferPointer(), pvsFBXAnimation->GetByteCode()->GetBufferSize(), &pInputLayoutAnimation)))
 	{
 		return E_FAIL;
 	}
 
-	if (FAILED(d3d11.pD3DDevice->CreateInputLayout(layout_uv, ARRAYSIZE(layout_uv),
-		pvsFBX->GetByteCode()->GetBufferPointer(), pvsFBX->GetByteCode()->GetBufferSize(), &pInputLayoutUV1)))
+	if (FAILED(d3d11.pD3DDevice->CreateInputLayout(layout_staticMesh, ARRAYSIZE(layout_staticMesh),
+		pvsFBX->GetByteCode()->GetBufferPointer(), pvsFBX->GetByteCode()->GetBufferSize(), &pInputLayoutStaticMesh)))
 	{
 		return E_FAIL;
 	}
 
-	if (FAILED(d3d11.pD3DDevice->CreateInputLayout(layout_color, ARRAYSIZE(layout_color),
-		pvsVertexColor->GetByteCode()->GetBufferPointer(), pvsVertexColor->GetByteCode()->GetBufferSize(), &pInputLayoutColor)))
+	if (FAILED(d3d11.pD3DDevice->CreateInputLayout(layout_Animation, ARRAYSIZE(layout_Animation),
+		pvsFBXAnimInstancing->GetByteCode()->GetBufferPointer(), pvsFBXAnimInstancing->GetByteCode()->GetBufferSize(), &pInputLayoutAnimationInstance)))
 	{
 		return E_FAIL;
 	}
 
-	/*if (FAILED(d3d11.pD3DDevice->CreateInputLayout(layout_uv2, ARRAYSIZE(layout_uv2),
-		pPlaneVS_UV->GetByteCode()->GetBufferPointer(), pPlaneVS_UV->GetByteCode()->GetBufferSize(), &pInputLayoutUV2)))
+	if (FAILED(d3d11.pD3DDevice->CreateInputLayout(layout_staticMesh, ARRAYSIZE(layout_staticMesh),
+		pvsFBXInstancing->GetByteCode()->GetBufferPointer(), pvsFBXInstancing->GetByteCode()->GetBufferSize(), &pInputLayoutStaticMeshInstance)))
 	{
 		return E_FAIL;
-	}*/
+	}
 
 	//コンスタントバッファー0作成  
 	D3D11_BUFFER_DESC bd;
@@ -154,14 +177,56 @@ HRESULT DrawSystem::Init(unsigned int msaaSamples)
 		return E_FAIL;
 	}
 
+	const uint32_t count = MAX_INSTANCE;
+	const uint32_t stride = static_cast<uint32_t>(sizeof(SRVPerInstanceData));
+
+	// Create StructuredBuffer
+	ZeroMemory(&bd, sizeof(bd));
+	bd.Usage = D3D11_USAGE_DYNAMIC;
+	bd.ByteWidth = stride * count;
+	bd.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	bd.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+	bd.StructureByteStride = stride;
+	if (FAILED(d3d11.pD3DDevice->CreateBuffer(&bd, NULL, &pTransformStructuredBuffer)))
+		return E_FAIL;
+
+	// Create ShaderResourceView
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	ZeroMemory(&srvDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;   // 拡張されたバッファーであることを指定する
+	srvDesc.BufferEx.FirstElement = 0;
+	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+	srvDesc.BufferEx.NumElements = count;                  // リソース内の要素の数
+
+	// 構造化バッファーをもとにシェーダーリソースビューを作成する
+	if (FAILED(d3d11.pD3DDevice->CreateShaderResourceView(pTransformStructuredBuffer.Get(), &srvDesc, &pTransformSRV)))
+		return E_FAIL;
+
 	return true;
+}
+
+void DrawSystem::SetMatrix(vector<GraphicsComponent*>& pGClist)
+{
+	HRESULT hr = S_OK;
+	const uint32_t count = MAX_INSTANCE;
+	
+	D3D11_MAPPED_SUBRESOURCE MappedResource;
+	d3d11.pD3DDeviceContext->Map(pTransformStructuredBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
+
+	SRVPerInstanceData*	pSrvInstanceData = (SRVPerInstanceData*)MappedResource.pData;
+
+	for (uint32_t i = 0; i<pGClist.size(); i++)
+	{
+		pSrvInstanceData[i].mWorld = pGClist[i]->world;
+	}
+
+	d3d11.pD3DDeviceContext->Unmap(pTransformStructuredBuffer.Get(), 0);
 }
 
 // リストに登録されたタスクを描画する
 bool DrawSystem::Draw()
 {
-	XMMATRIX view = XMLoadFloat4x4(&Camera::Instance().view);
-
 	float ClearColor[4] = { 0.0f, 0.0f, 0.7f, 1.0f };
 	//float ClearColor[4] = { 0,0,1,1 };
 
@@ -176,40 +241,63 @@ bool DrawSystem::Draw()
 	d3d11.pD3DDeviceContext->OMSetBlendState(pBlendState.Get(), blendFactors, 0xffffffff);
 	d3d11.pD3DDeviceContext->OMSetDepthStencilState(pDepthStencilState.Get(), 0);
 
+	d3d11.pD3DDeviceContext->VSSetConstantBuffers(0, 1, pcBuffer0.GetAddressOf());
+	d3d11.pD3DDeviceContext->PSSetConstantBuffers(0, 1, pcBuffer0.GetAddressOf());
+
 	D3D11_MAPPED_SUBRESOURCE pData;
 	if (SUCCEEDED(d3d11.pD3DDeviceContext->Map(pcBuffer0.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &pData)))
 	{
 		SHADER_GLOBAL sg;
 		sg.lightDir = XMFLOAT4(1.0f, -1.0f, 1.0f, 0.0f);
-		sg.eye = XMFLOAT4(view.r[3].m128_f32[0], view.r[3].m128_f32[1], view.r[3].m128_f32[2], 0);
+		sg.eye = XMFLOAT4(view._41, view._42, view._43, 0);
 		memcpy_s(pData.pData, pData.RowPitch, (void*)&sg, sizeof(SHADER_GLOBAL));
 		d3d11.pD3DDeviceContext->Unmap(pcBuffer0.Get(), 0);
 	}
-	d3d11.pD3DDeviceContext->VSSetConstantBuffers(0, 1, pcBuffer0.GetAddressOf());
-	d3d11.pD3DDeviceContext->PSSetConstantBuffers(0, 1, pcBuffer0.GetAddressOf());
 
-	d3d11.pD3DDeviceContext->VSSetShader(pvsFBX->GetShader(), NULL, 0);
-	d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), NULL, 0);
-	d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutUV1.Get());
-
-	for (auto it = opaqueDrawList[DRAW_PATTERN::STATIC_MESH].begin(); it != opaqueDrawList[DRAW_PATTERN::STATIC_MESH].end(); ++it)
+	for (auto it = opaqueDrawList.begin(); it != opaqueDrawList.end(); ++it)
 	{
-		if (ResourceManager::Instance().GetRefCount((*it)->pMeshData->GetName()) > 1)
-			DrawStaticMeshInstance(*it);
-		else
-			DrawStaticMesh(*it);
-	}
+		bool isAnim;
+		int refCnt = (*it).second.size();
+		if (refCnt > 1)
+		{
+			isAnim = ResourceManager::Instance().GetResource((*it).first)->isAnimation;
+			if (isAnim)
+			{
+				d3d11.pD3DDeviceContext->VSSetShader(pvsFBXAnimInstancing->GetShader(), NULL, 0);
+				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBuffer1.GetAddressOf());
+				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), NULL, 0);
+				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutAnimationInstance.Get());
+			}
+			else
+			{
+				d3d11.pD3DDeviceContext->VSSetShader(pvsFBXInstancing->GetShader(), NULL, 0);
+				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBuffer1.GetAddressOf());
+				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), NULL, 0);
+				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutStaticMeshInstance.Get());
+			}
 
-	d3d11.pD3DDeviceContext->VSSetShader(pvsFBXAnimation->GetShader(), NULL, 0);
-	d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), NULL, 0);
-	d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutUV.Get());
-
-	for (auto it = opaqueDrawList[DRAW_PATTERN::ANIMATION].begin(); it != opaqueDrawList[DRAW_PATTERN::ANIMATION].end(); ++it)
-	{
-		if (ResourceManager::Instance().GetRefCount((*it)->pMeshData->GetName()) > 1)
-			DrawAnimationInstance(*it);
+			RenderInstancing((*it).second, refCnt, isAnim);
+		}
 		else
-			DrawAnimation(*it);
+		{
+			isAnim = ResourceManager::Instance().GetResource((*it).first)->isAnimation;
+			if (isAnim)
+			{
+				d3d11.pD3DDeviceContext->VSSetShader(pvsFBXAnimation->GetShader(), NULL, 0);
+				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBuffer1.GetAddressOf());
+				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), NULL, 0);
+				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutAnimation.Get());
+			}
+			else
+			{
+				d3d11.pD3DDeviceContext->VSSetShader(pvsFBX->GetShader(), NULL, 0);
+				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBuffer1.GetAddressOf());
+				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), NULL, 0);
+				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutStaticMesh.Get());
+			}
+
+			Render((*it).second[0],isAnim);
+		}
 	}
 
 	//EffectManager::Instance().Draw();
@@ -224,13 +312,13 @@ bool DrawSystem::Draw()
 	return true;
 }
 
-void DrawSystem::DrawAnimation(GraphicsComponent* pGC)
+void DrawSystem::Render(GraphicsComponent* pGC,bool isAnim)
 {
 	// FBX Modelのnode数を取得
 	size_t nodeCount = pGC->pMeshData->GetMeshCount();
 
 	// 全ノードを描画
-	for (int j = 0; j<nodeCount; j++)
+	for (unsigned int j = 0; j<nodeCount; j++)
 	{
 		MESH mesh = pGC->pMeshData->GetMeshList()[j];
 
@@ -253,28 +341,14 @@ void DrawSystem::DrawAnimation(GraphicsComponent* pGC)
 
 		d3d11.pD3DDeviceContext->Unmap(pcBuffer1.Get(), 0);
 
-		d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBuffer1.GetAddressOf());
-
 		pGC->pMeshData->SetAnimationFrame(j, pGC->frame);
-
-		//MATERIAL_DATA material = GetNodeMaterial(j);
-
-		//if (material.pMaterialCb)
-		//	d3d11.pD3DDeviceContext->UpdateSubresource(material.pMaterialCb.Get(), 0, NULL, &material.materialConstantData, 0, 0);
-
-		////pDirect3D11->pD3DDeviceContext->VSSetShaderResources(0, 1, &g_pTransformSRV);
-		//d3d11.pD3DDeviceContext->PSSetShaderResources(0, 1, material.pSRV.GetAddressOf());
-		//d3d11.pD3DDeviceContext->PSSetConstantBuffers(0, 1, material.pMaterialCb.GetAddressOf());
-		//d3d11.pD3DDeviceContext->PSSetSamplers(0, 1, material.pSampler.GetAddressOf());
-
 		
-
 		//フレームを進めたことにより変化したポーズ（ボーンの行列）をシェーダーに渡す
 		D3D11_MAPPED_SUBRESOURCE pData;
 		if (SUCCEEDED(d3d11.pD3DDeviceContext->Map(pcBoneBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &pData)))
 		{
 			SHADER_GLOBAL_BONES sg;
-			for (int i = 0; i < mesh.boneCount; i++)
+			for (unsigned int i = 0; i < mesh.boneArray.size(); i++)
 			{
 				XMMATRIX local = XMLoadFloat4x4(&mesh.mLocal);
 				XMMATRIX mat = local * XMLoadFloat4x4(&/*node->mLocal**/pGC->pMeshData->GetCurrentPose(&mesh, i));
@@ -288,12 +362,23 @@ void DrawSystem::DrawAnimation(GraphicsComponent* pGC)
 		d3d11.pD3DDeviceContext->VSSetConstantBuffers(2, 1, pcBoneBuffer.GetAddressOf());
 		d3d11.pD3DDeviceContext->PSSetConstantBuffers(2, 1, pcBoneBuffer.GetAddressOf());
 
-		UINT stride = sizeof(VERTEX_DATA);
-		UINT offset = 0;
-		d3d11.pD3DDeviceContext->IASetVertexBuffers(0, 1, mesh.pVB.GetAddressOf(), &stride, &offset);
+		if (isAnim)
+		{
+			ID3D11Buffer* pBuf[2] = { mesh.pVB.Get(), mesh.pVB_Bone.Get() };
+			UINT stride[2] = { sizeof(VERTEX_DATA), sizeof(BONE_DATA_PER_VERTEX) };
+			UINT offset[2] = { 0, 0 };
+			// 3Dアセットデータ、およびジオメトリ処理用の行列を入力アセンブラに設定する
+			d3d11.pD3DDeviceContext->IASetVertexBuffers(0, 2, pBuf, stride, offset);
+		}
+		else
+		{
+			UINT stride = sizeof(VERTEX_DATA);
+			UINT offset = 0;
+			d3d11.pD3DDeviceContext->IASetVertexBuffers(0, 1, mesh.pVB.GetAddressOf(), &stride, &offset);
+		}
 
 		//マテリアルの数だけ、それぞれのマテリアルのインデックスバッファ－を描画
-		for (int i = 0; i<mesh.materialCount; i++)
+		for (unsigned int i = 0; i<mesh.materialData.size(); i++)
 		{
 			MaterialData material = *mesh.materialData[i];
 
@@ -303,8 +388,6 @@ void DrawSystem::DrawAnimation(GraphicsComponent* pGC)
 				continue;
 			}
 			//インデックスバッファーをセット
-			stride = sizeof(int);
-			offset = 0;
 			d3d11.pD3DDeviceContext->IASetIndexBuffer(mesh.pIB[i].Get(), DXGI_FORMAT_R32_UINT, 0);
 
 			d3d11.pD3DDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -329,15 +412,15 @@ void DrawSystem::DrawAnimation(GraphicsComponent* pGC)
 
 }
 
-void DrawSystem::DrawStaticMesh(GraphicsComponent * pGC)
+void DrawSystem::RenderInstancing(vector<GraphicsComponent*>& pGClist, int refCnt, bool isAnim)
 {
 	// FBX Modelのnode数を取得
-	size_t nodeCount = pGC->pMeshData->GetMeshCount();
+	size_t nodeCount = pGClist[0]->pMeshData->GetMeshCount();
 
 	// 全ノードを描画
-	for (int j = 0; j<nodeCount; j++)
+	for (unsigned int j = 0; j<nodeCount; j++)
 	{
-		MESH mesh = pGC->pMeshData->GetMeshList()[j];
+		MESH mesh = pGClist[0]->pMeshData->GetMeshList()[j];
 
 		if (mesh.pVB == nullptr)
 			continue;
@@ -347,28 +430,62 @@ void DrawSystem::DrawStaticMesh(GraphicsComponent * pGC)
 
 		CBMATRIX*	cbFBX = (CBMATRIX*)MappedResource.pData;
 
-		XMMATRIX _world = XMLoadFloat4x4(&pGC->world);
-		XMMATRIX _view = XMLoadFloat4x4(&view);
-		XMMATRIX _proj = XMLoadFloat4x4(&proj);
+		XMMATRIX _world = XMMatrixIdentity();
+		XMMATRIX _view	= XMLoadFloat4x4(&view);
+		XMMATRIX _proj	= XMLoadFloat4x4(&proj);
 		XMMATRIX _local = XMLoadFloat4x4(&mesh.mLocal);
 
 		// 左手系
-		cbFBX->mWorld = pGC->world;
-		cbFBX->mView = view;
-		cbFBX->mProj = proj;
+		XMStoreFloat4x4(&cbFBX->mWorld, _world);
+		cbFBX->mView  = view;
+		cbFBX->mProj  = proj;
 
 		XMStoreFloat4x4(&cbFBX->mWVP, XMMatrixTranspose(/*local**/_world*_view*_proj));
 
 		d3d11.pD3DDeviceContext->Unmap(pcBuffer1.Get(), 0);
 
-		d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBuffer1.GetAddressOf());
+		pGClist[0]->pMeshData->SetAnimationFrame(j, pGClist[0]->frame);
 
-		UINT stride = sizeof(VERTEX_DATA);
-		UINT offset = 0;
-		d3d11.pD3DDeviceContext->IASetVertexBuffers(0, 1, mesh.pVB.GetAddressOf(), &stride, &offset);
+		SetMatrix(pGClist);
+
+		//フレームを進めたことにより変化したポーズ（ボーンの行列）をシェーダーに渡す
+		D3D11_MAPPED_SUBRESOURCE pData;
+		if (SUCCEEDED(d3d11.pD3DDeviceContext->Map(pcBoneBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &pData)))
+		{
+			SHADER_GLOBAL_BONES sg;
+			for (unsigned int i = 0; i < mesh.boneArray.size(); i++)
+			{
+				XMMATRIX local = XMLoadFloat4x4(&mesh.mLocal);
+				XMMATRIX mat = local * XMLoadFloat4x4(&/*node->mLocal**/pGClist[0]->pMeshData->GetCurrentPose(&mesh, i));
+				mat = XMMatrixTranspose(mat);
+				XMStoreFloat4x4(&sg.mBone[i], mat);
+			}
+			memcpy_s(pData.pData, pData.RowPitch, (void*)&sg, sizeof(SHADER_GLOBAL_BONES));
+			d3d11.pD3DDeviceContext->Unmap(pcBoneBuffer.Get(), 0);
+		}
+
+		d3d11.pD3DDeviceContext->VSSetConstantBuffers(2, 1, pcBoneBuffer.GetAddressOf());
+		d3d11.pD3DDeviceContext->PSSetConstantBuffers(2, 1, pcBoneBuffer.GetAddressOf());
+
+		if (isAnim)
+		{
+			ID3D11Buffer* pBuf[2] = { mesh.pVB.Get(), mesh.pVB_Bone.Get() };
+			UINT stride[2] = { sizeof(VERTEX_DATA), sizeof(BONE_DATA_PER_VERTEX) };
+			UINT offset[2] = { 0, 0 };
+			// 3Dアセットデータ、およびジオメトリ処理用の行列を入力アセンブラに設定する
+			d3d11.pD3DDeviceContext->IASetVertexBuffers(0, 2, pBuf, stride, offset);
+		}
+		else
+		{
+			UINT stride = sizeof(VERTEX_DATA);
+			UINT offset = 0;
+			d3d11.pD3DDeviceContext->IASetVertexBuffers(0, 1, mesh.pVB.GetAddressOf(), &stride, &offset);
+		}
+
+		d3d11.pD3DDeviceContext->VSSetShaderResources(0, 1, pTransformSRV.GetAddressOf());
 
 		//マテリアルの数だけ、それぞれのマテリアルのインデックスバッファ－を描画
-		for (int i = 0; i<mesh.materialCount; i++)
+		for (unsigned int i = 0; i<mesh.materialData.size(); i++)
 		{
 			MaterialData material = *mesh.materialData[i];
 
@@ -378,8 +495,8 @@ void DrawSystem::DrawStaticMesh(GraphicsComponent * pGC)
 				continue;
 			}
 			//インデックスバッファーをセット
-			stride = sizeof(int);
-			offset = 0;
+			UINT stride = sizeof(int);
+			UINT offset = 0;
 			d3d11.pD3DDeviceContext->IASetIndexBuffer(mesh.pIB[i].Get(), DXGI_FORMAT_R32_UINT, 0);
 
 			d3d11.pD3DDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -397,26 +514,40 @@ void DrawSystem::DrawStaticMesh(GraphicsComponent * pGC)
 			}
 
 			//Draw
-			d3d11.pD3DDeviceContext->DrawIndexed(material.faceCount * 3, 0, 0);
+			d3d11.pD3DDeviceContext->DrawIndexedInstanced(material.faceCount * 3, refCnt, 0, 0, 0);
 		}
 		//}
 	}
 }
 
-void DrawSystem::DrawAnimationInstance(GraphicsComponent * pGC)
+void DrawSystem::AddDrawList(DRAW_PRIOLITY priolity, const string& tag, GraphicsComponent* pGC)
 {
-}
+	if (priolity == DRAW_PRIOLITY::Opaque)
+	{
+		unordered_map<string, vector<GraphicsComponent*>>::iterator modelName = opaqueDrawList.find(tag);
 
-void DrawSystem::DrawStaticMeshInstance(GraphicsComponent * pGC)
-{
-}
+		if (modelName == opaqueDrawList.end())
+		{
+			opaqueDrawList[tag].push_back(pGC);
+		}
+		else
+		{
+			modelName->second.push_back(pGC);
+		}
+	}
+	else if (priolity == DRAW_PRIOLITY::Alpha)
+	{
+		unordered_map<string, vector<GraphicsComponent*>>::iterator modelName = alphaDrawList.find(tag);
 
-void DrawSystem::AddDrawList(DRAW_PRIOLITY priolity, DRAW_PATTERN pattern, GraphicsComponent* pGC)
-{
-	if(priolity == DRAW_PRIOLITY::Opaque)
-		opaqueDrawList[pattern].push_back(pGC);
-	else if(priolity == DRAW_PRIOLITY::Alpha)
-		alphaDrawList[pattern].push_back(pGC);
+		if (modelName == alphaDrawList.end())
+		{
+			alphaDrawList[tag].push_back(pGC);
+		}
+		else
+		{
+			modelName->second.push_back(pGC);
+		}
+	}
 }
 
 void DrawSystem::SetView(XMFLOAT4X4 * v)
@@ -427,17 +558,4 @@ void DrawSystem::SetView(XMFLOAT4X4 * v)
 void DrawSystem::SetProjection(XMFLOAT4X4 * p)
 {
 	proj = *p;
-}
-
-ID3D11Buffer* DrawSystem::GetCBuffer(int i)
-{
-	switch (i)
-	{
-	case 0:
-		return pcBuffer0.Get();
-	case 1:
-		return pcBuffer1.Get();
-	case 2:
-		return pcBoneBuffer.Get();
-	}
 }

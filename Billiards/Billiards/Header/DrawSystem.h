@@ -6,8 +6,10 @@
 #include "GameObject.h"
 
 class GraphicsComponent;
+struct MESH;
 
 const UINT MAX_BONES = 255;
+const UINT MAX_INSTANCE = 255;
 
 enum struct SHADER_ID
 {
@@ -24,12 +26,6 @@ enum struct DRAW_PRIOLITY
 {
 	Opaque,		// 不透明オブジェクト
 	Alpha,		// 半透明オブジェクト
-};
-
-enum struct DRAW_PATTERN
-{
-	STATIC_MESH,
-	ANIMATION,
 };
 
 struct SHADER_GLOBAL
@@ -59,6 +55,11 @@ struct CBMATRIX
 	XMFLOAT4X4 mWVP;
 };
 
+struct SRVPerInstanceData
+{
+	XMFLOAT4X4 mWorld;
+};
+
 /////////////////////////////////////////////////
 // DrawSystem
 //
@@ -70,41 +71,40 @@ class DrawSystem
 private:
 	Direct3D11 &d3d11 = Direct3D11::Instance();
 
-	ComPtr<ID3D11RasterizerState> pRS;
-	ComPtr<ID3D11RasterizerState> pRSnoCull;
-	ComPtr<ID3D11BlendState> pBlendState;
-	ComPtr<ID3D11DepthStencilState>	pDepthStencilState;
+	ComPtr<ID3D11RasterizerState>	pRS = nullptr;
+	ComPtr<ID3D11RasterizerState>	pRSnoCull = nullptr;
+	ComPtr<ID3D11BlendState>		pBlendState = nullptr;
+	ComPtr<ID3D11DepthStencilState>	pDepthStencilState = nullptr;
 
-	unique_ptr<VertexShader> pvsFBX = nullptr;
-	unique_ptr<VertexShader> pvsFBXInstancing = nullptr;
-	unique_ptr<VertexShader> pvsVertexColor = nullptr;
-	unique_ptr<VertexShader> pvsFBXAnimation = nullptr;
-	unique_ptr<VertexShader> pPlaneVS_UV = nullptr;
-	unique_ptr<PixelShader> pPlanePS_UV = nullptr;
-	unique_ptr<PixelShader> ppsFBX = nullptr;
-	unique_ptr<PixelShader> ppsVertexColor = nullptr;
-	unique_ptr<PixelShader> ppsFBXAnimation = nullptr;
+	VertexShader*	pvsFBX = nullptr;
+	VertexShader*	pvsFBXInstancing = nullptr;
+	VertexShader*	pvsFBXAnimation = nullptr;
+	VertexShader*	pvsFBXAnimInstancing = nullptr;
+	PixelShader*	ppsFBX = nullptr;
+	PixelShader*	ppsVertexColor = nullptr;
+	PixelShader*	ppsFBXAnimation = nullptr;
 
-	ComPtr<ID3D11InputLayout> pInputLayoutUV;
-	ComPtr<ID3D11InputLayout> pInputLayoutUV1;
-	ComPtr<ID3D11InputLayout> pInputLayoutUV2;
-	ComPtr<ID3D11InputLayout> pInputLayoutColor;
+	ComPtr<ID3D11InputLayout> pInputLayoutStaticMesh = nullptr;
+	ComPtr<ID3D11InputLayout> pInputLayoutAnimation = nullptr;
+	ComPtr<ID3D11InputLayout> pInputLayoutStaticMeshInstance = nullptr;
+	ComPtr<ID3D11InputLayout> pInputLayoutAnimationInstance = nullptr;
 
 	ComPtr<ID3D11Buffer> pcBuffer0 = nullptr;
 	ComPtr<ID3D11Buffer> pcBuffer1 = nullptr;
 	ComPtr<ID3D11Buffer> pcBoneBuffer = nullptr;
+	ComPtr<ID3D11Buffer> pTransformStructuredBuffer = nullptr;
+	ComPtr<ID3D11ShaderResourceView> pTransformSRV = nullptr;
 
-	unordered_map<DRAW_PATTERN,vector<GraphicsComponent*>> opaqueDrawList;
-	unordered_map<DRAW_PATTERN, vector<GraphicsComponent*>> alphaDrawList;
+	unordered_map<string, vector<GraphicsComponent*>> opaqueDrawList;
+	unordered_map<string, vector<GraphicsComponent*>> alphaDrawList;
 
 	XMFLOAT4X4 view;
 	XMFLOAT4X4 proj;
 
-	void DrawAnimation(GraphicsComponent* pGC);
-	void DrawStaticMesh(GraphicsComponent* pGC);
-	void DrawAnimationInstance(GraphicsComponent* pGC);
-	void DrawStaticMeshInstance(GraphicsComponent* pGC);
+	void Render(GraphicsComponent* pGC,bool isAnim);
+	void RenderInstancing(vector<GraphicsComponent*>& pGClist, int refCnt, bool isAnim);
 
+	void SetMatrix(vector<GraphicsComponent*>& pGClist);
 
 protected:
 	// シングルトンなのでコンストラクタをプロトタイプ宣言します
@@ -125,11 +125,8 @@ public:
 	// リストに登録されたタスクを描画する
 	virtual bool Draw();
 
-	void AddDrawList(DRAW_PRIOLITY priolity, DRAW_PATTERN pattern,GraphicsComponent* pGC);
+	void AddDrawList(DRAW_PRIOLITY priolity, const string& tag,GraphicsComponent* pGC);
 
 	void SetView(XMFLOAT4X4* v);
 	void SetProjection(XMFLOAT4X4* p);
-
-	ID3D11Buffer* GetCBuffer(int i);
-	void SetCBufferVS(int i);
 };
