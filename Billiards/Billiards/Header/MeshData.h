@@ -29,16 +29,8 @@ struct	VERTEX_DATA
 
 struct BONE_DATA_PER_VERTEX
 {
-	XMFLOAT3	vPos;
-	XMFLOAT3	vNor;
-	XMFLOAT2	vTexcoord;
 	UINT boneIndex[4];	//ボーン番号
 	float boneWeight[4];  //ボーン重み
-
-	BONE_DATA_PER_VERTEX() : vPos(0.0f, 0.0f, 0.0f), vNor(0.0f, 0.0f, 0.0f), vTexcoord(0.0f, 0.0f)
-	{
-
-	}
 };
 
 
@@ -60,14 +52,10 @@ struct MESH
 	string name;
 	string parentName;
 	ComPtr<ID3D11Buffer> pVB;
+	ComPtr<ID3D11Buffer> pVB_Bone;
 	vector<ComPtr<ID3D11Buffer>> pIB;
 	XMFLOAT4X4 mLocal;
-	int	vertexCount;
-	int   uvCount;
-	int	indexCount;
-	int   materialCount;
 	vector<MaterialData*> materialData;
-	int boneCount;
 	vector<BONE> boneArray;
 	vector<FbxCluster*>	fbx_boneArray;			// ボーン行列更新用
 
@@ -76,14 +64,10 @@ struct MESH
 		name = "";
 		parentName = "";
 		pVB = nullptr;
+		pVB_Bone = nullptr;
 		pIB.clear();
 		boneArray.clear();
 		materialData.clear();
-		vertexCount = 0;
-		uvCount		= 0;
-		indexCount	= 0;
-		materialCount = 0;
-		boneCount	= 0;
 	}
 };
 
@@ -94,6 +78,8 @@ private:
 	vector<MESH> meshList;
 	int			 meshCnt;
 public:
+	bool isAnimation = false;
+
 	MeshData();
 	virtual ~MeshData();
 

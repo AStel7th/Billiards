@@ -35,11 +35,10 @@ void MeshData::SetAnimationFrame(int index,int frame)
 		0, 0, 1, 0,
 		0, 0, 0, 1);
 
-	int i;
 	FbxTime time;
 	time.SetTime(0, 0, 0, frame, 0, FbxTime::eFrames60);//30フレーム/秒　と推定　厳密には状況ごとに調べる必要あり
 
-	for (int i = 0; i< meshList[index].boneCount; i++)
+	for (unsigned int i = 0; i< meshList[index].boneArray.size(); i++)
 	{
 		FbxAMatrix mat = meshList[index].fbx_boneArray[i]->GetLink()->EvaluateGlobalTransform(time);
 
@@ -49,7 +48,7 @@ void MeshData::SetAnimationFrame(int index,int frame)
 		{
 			for (int y = 0; y<4; y++)
 			{
-				meshList[index].boneArray[i].mNewPose.m[y][x] = newMat.Get(y, x);
+				meshList[index].boneArray[i].mNewPose.m[y][x] = (float)newMat.Get(y, x);
 			}
 		}
 
