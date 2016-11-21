@@ -3,6 +3,7 @@
 #include "../Header/Direct3D11.h"
 
 
+//拡張子取得関数
 inline string GetExtension(const string &path)
 {
 	string ext;
@@ -28,11 +29,14 @@ inline string GetExtension(const string &path)
 	return ext;
 }
 
-
-
 FBXLoader::FBXLoader() : pFbx(nullptr)
 {
-	m_meshNodeArray.clear();
+	faceCount	= 0;
+	vertexCount = 0;
+	uvCount		= 0;
+	indexCount	= 0;
+	materialCount = 0;
+	boneCount	= 0;
 }
 
 FBXLoader::~FBXLoader()
@@ -43,59 +47,44 @@ FBXLoader::~FBXLoader()
 //
 void FBXLoader::Release()
 {
-	m_meshNodeArray.clear();
 	SAFE_DELETE(pFbx);
 }
 
-MeshData FBXLoader::LoadFBX(const char* filename,string modelName)
+void FBXLoader::LoadFBX(const char* filename,string modelName)
 {
-	MeshData meshData;
-
 	if (!filename)
-		return meshData;
+		return;
 
 	HRESULT hr = S_OK;
 
 	pFbx = NEW FBX();
-	hr = pFbx->Initialaize(filename, eAXIS_DIRECTX);
+	hr = pFbx->Initialaize(filename, eAXIS_DIRECTX);	// sdkマネージャー初期化
 	if (FAILED(hr))
-		return meshData;
+		return;
 
-	meshData.SetName(modelName);
+	meshData.SetName(modelName);		//モデルに名前設定、識別にも使う
 
-	Setup(meshData);
-
-	return meshData;
+	Setup();
 }
 
-//
-FbxNode&	FBXLoader::GetRootNode()
-{
-	return *pFbx->mScene->GetRootNode();
-}
-
-void FBXLoader::Setup(MeshData& mData)
+void FBXLoader::Setup()
 {
 	// RootNodeから探索していく
 	if (pFbx->mScene->GetRootNode())
 	{
-		SetupNode(pFbx->mScene->GetRootNode(), "null", mData);
+		SetupNode(pFbx->mScene->GetRootNode(), "null");
 	}
 }
 
-void FBXLoader::SetupNode(FbxNode* pNode, std::string parentName, MeshData& mData)
+void FBXLoader::SetupNode(FbxNode* pNode, std::string parentName)
 {
 	if (!pNode)
 		return;
 	
 	MESH mesh;
 
-	//FBX_MESH_NODE meshNode;
-
-	mesh.name = pNode->GetName();
+	mesh.name		= pNode->GetName();
 	mesh.parentName = parentName;
-
-	//ZeroMemory(&meshNode.elements, sizeof(MESH_ELEMENTS));
 
 	FbxNodeAttribute *pAttrib = pNode->GetNodeAttribute();
 	if (pAttrib)
@@ -105,30 +94,36 @@ void FBXLoader::SetupNode(FbxNode* pNode, std::string parentName, MeshData& mDat
 		{
 			// メッシュにダウンキャスト
 			FbxMesh *lMesh = (FbxMesh*)pAttrib;
-			//meshNode.m_pMesh = lMesh;
-
+			
 			//事前に頂点数、ポリゴン数等を調べる
-			mesh.vertexCount = lMesh->GetControlPointsCount();
-			mesh.uvCount = lMesh->GetTextureUVCount();
-			faceCount = lMesh->GetPolygonCount();
+			vertexCount = lMesh->GetControlPointsCount();
+			uvCount		= lMesh->GetTextureUVCount();
+			faceCount	= lMesh->GetPolygonCount();
 
 			//ボーンの数
 			//デフォーマーが存在するか
 			if (lMesh->GetDeformerCount(FbxDeformer::eSkin) == 0)
 			{
-				mesh.boneCount = 0;
+				boneCount = 0;
 			}
 			else
 			{
 				FbxSkin* pSkinInfo = static_cast<FbxSkin*>(lMesh->GetDeformer(0, FbxDeformer::eSkin));
-				mesh.boneCount = pSkinInfo->GetClusterCount();
+				boneCount = pSkinInfo->GetClusterCount();
+
+				meshData.isAnimation = true;
 			}
 
-			if (mesh.vertexCount > 0)
+			if (vertexCount > 0)
 			{
-				if (mesh.boneCount > 0)
+				vertexCount < uvCount ? vDataArray.resize(uvCount) : vDataArray.resize(vertexCount);
+				
+				// 頂点があるならノードにコピー
+				CopyVertexData(lMesh, &mesh, pNode->LclTranslation, pNode->LclScaling, pNode->LclRotation);
+
+				if (boneCount > 0)
 				{
-					mesh.vertexCount < mesh.uvCount ? vbDataArray.resize(mesh.uvCount) : vbDataArray.resize(mesh.vertexCount);
+					vertexCount < uvCount ? vbDataArray.resize(uvCount) : vbDataArray.resize(vertexCount);
 
 					//頂点からポリゴンを逆引きしたいので、逆引きテーブルを作る 
 					vector<POLY_TABLE> polyTable;
@@ -137,29 +132,22 @@ void FBXLoader::SetupNode(FbxNode* pNode, std::string parentName, MeshData& mDat
 					// ボーンコピー
 					CopyBoneData(lMesh, &mesh, polyTable);
 				}
-				else
-				{
-					mesh.vertexCount < mesh.uvCount ? vDataArray.resize(mesh.uvCount) : vDataArray.resize(mesh.vertexCount);
-				}
-
-				// 頂点があるならノードにコピー
-				CopyVertexData(lMesh, &mesh, pNode->LclTranslation, pNode->LclScaling, pNode->LclRotation);
 			}
 
 
 			// マテリアル
-			mesh.materialCount = pNode->GetMaterialCount();
-			mesh.materialData.resize(mesh.materialCount);
-			for (int i = 0; i < mesh.materialCount; i++)
+			materialCount = pNode->GetMaterialCount();
+			mesh.materialData.resize(materialCount);
+			for (int i = 0; i < materialCount; i++)
 			{
 				FbxSurfaceMaterial* mat = pNode->GetMaterial(i);
 				if (!mat)
 					continue;
 
-				MaterialData* matData = MaterialManager::Instance().CreateMaterial(mData.GetName() + to_string(i));
+				MaterialData* matData = MaterialManager::Instance().CreateMaterial(meshData.GetName() + to_string(i));
 				int indexCount;
 				vector<int> pIndex;
-				DWORD faceNum;
+				int faceNum;
 				
 				//そのマテリアルであるインデックス配列内の開始インデックスを調べる　さらにインデックスの個数も調べる		
 				indexCount = 0;
@@ -172,18 +160,18 @@ void FBXLoader::SetupNode(FbxNode* pNode, std::string parentName, MeshData& mDat
 					int matId = mat->GetIndexArray().GetAt(k);
 					if (matId == i)
 					{
-						if (mesh.vertexCount < mesh.uvCount)
+						if (vertexCount < uvCount)
 						{
-							pIndex[indexCount] = lMesh->GetTextureUVIndex(k, 0, FbxLayerElement::eTextureDiffuse);
-							pIndex[indexCount + 1] = lMesh->GetTextureUVIndex(k, 1, FbxLayerElement::eTextureDiffuse);
-							pIndex[indexCount + 2] = lMesh->GetTextureUVIndex(k, 2, FbxLayerElement::eTextureDiffuse);
+							pIndex[indexCount]		= lMesh->GetTextureUVIndex(k, 0, FbxLayerElement::eTextureDiffuse);
+							pIndex[indexCount + 1]	= lMesh->GetTextureUVIndex(k, 1, FbxLayerElement::eTextureDiffuse);
+							pIndex[indexCount + 2]	= lMesh->GetTextureUVIndex(k, 2, FbxLayerElement::eTextureDiffuse);
 						}
 						else
 						{
 
-							pIndex[indexCount] = lMesh->GetPolygonVertex(k, 0);
-							pIndex[indexCount + 1] = lMesh->GetPolygonVertex(k, 1);
-							pIndex[indexCount + 2] = lMesh->GetPolygonVertex(k, 2);
+							pIndex[indexCount]		= lMesh->GetPolygonVertex(k, 0);
+							pIndex[indexCount + 1]	= lMesh->GetPolygonVertex(k, 1);
+							pIndex[indexCount + 2]	= lMesh->GetPolygonVertex(k, 2);
 						}
 						indexCount += 3;
 					}
@@ -196,28 +184,26 @@ void FBXLoader::SetupNode(FbxNode* pNode, std::string parentName, MeshData& mDat
 		}
 	}
 
-	if (mesh.vertexCount != 0)
+	if (vertexCount != 0)
 	{
-		if (mesh.boneCount > 0)
+		CreateVertexBuffer(&mesh.pVB, vDataArray.data(), sizeof(VERTEX_DATA), vDataArray.size());
+		vDataArray.clear();
+
+		if (boneCount > 0)
 		{
-			CreateVertexBuffer(&mesh.pVB, vbDataArray.data(), sizeof(BONE_DATA_PER_VERTEX), vbDataArray.size());
+			CreateVertexBuffer(&mesh.pVB_Bone, vbDataArray.data(), sizeof(BONE_DATA_PER_VERTEX), vbDataArray.size());
 			vbDataArray.clear();
-		}
-		else
-		{
-			CreateVertexBuffer(&mesh.pVB, vDataArray.data(), sizeof(VERTEX_DATA), vDataArray.size());
-			vDataArray.clear();
 		}
 	}
 	
 	ComputeNodeMatrix(pNode, &mesh);
 
-	mData.GetMeshList().push_back(mesh);
+	meshData.GetMeshList().push_back(mesh);
 
 	const int lCount = pNode->GetChildCount();
 	for (int i = 0; i < lCount; i++)
 	{
-		SetupNode(pNode->GetChild(i), mesh.name,mData);
+		SetupNode(pNode->GetChild(i), mesh.name);
 	}
 }
 
@@ -399,6 +385,9 @@ void FBXLoader::CopyMatrialData(FbxSurfaceMaterial* mat, MESH* mesh, int indexCn
 
 			// シェーダーリソースビューの作成
 			hr = CreateShaderResourceView(Direct3D11::Instance().pD3DDevice.Get(), image.GetImages(), image.GetImageCount(), metadata, &data.pSRV);
+			if (FAILED(hr)) {
+				return;
+			}
 		}
 	}
 
@@ -501,7 +490,7 @@ void FBXLoader::ComputeNodeMatrix(FbxNode* pNode, MESH* mesh)
 	{
 		for (int y = 0; y<4; y++)
 		{
-			mesh->mLocal.m[y][x] = lGlobal.Get(y, x);
+			mesh->mLocal.m[y][x] = (float)lGlobal.Get(y, x);
 		}
 	}
 }
@@ -512,13 +501,7 @@ void FBXLoader::CopyVertexData(FbxMesh*	pMesh, MESH* mesh,FbxDouble3 translation
 	if (!pMesh)
 		return;
 
-	
-	//meshNode->m_vertexDataArray.reserve(meshNode->faceCount * 3);
-
 	FbxVector4 pos, nor;
-
-	/*meshNode->elements.numPosition = 1;
-	meshNode->elements.numNormal = 1;*/
 
 	FbxVector4* lControlPoints = pMesh->GetControlPoints();
 	int vertexId = 0;
@@ -533,59 +516,29 @@ void FBXLoader::CopyVertexData(FbxMesh*	pMesh, MESH* mesh,FbxDouble3 translation
 
 		for (int j = 0; j < polygonSize; j++)
 		{
-			if (mesh->boneCount > 0)
-			{
-				BONE_DATA_PER_VERTEX vData;
+			VERTEX_DATA vData;
 
-				int lControlPointIndex =
-					mesh->vertexCount < mesh->uvCount ? pMesh->GetTextureUVIndex(i, j, FbxLayerElement::eTextureDiffuse) : pMesh->GetPolygonVertex(i, j);
+			int lControlPointIndex =
+				vertexCount < uvCount ? pMesh->GetTextureUVIndex(i, j, FbxLayerElement::eTextureDiffuse) : pMesh->GetPolygonVertex(i, j);
 
-				//int index = pMesh->GetPolygonVertex(i, j);
+			int index = pMesh->GetPolygonVertex(i, j);
 
-				//index
-				indexes.push_back(lControlPointIndex);
+			//pos       
+			pos = lControlPoints[index];
+			vData.vPos = XMFLOAT3((float)pos.mData[0], (float)pos.mData[1], (float)pos.mData[2]);
 
-				//pos       
-				pos = lControlPoints[lControlPointIndex];
-				vData.vPos = XMFLOAT3((float)pos.mData[0], (float)pos.mData[1], (float)pos.mData[2]);
+			//normal
+			vData.vNor = GetNormal(pMesh, lControlPointIndex);
 
-				//normal
-				vData.vNor = GetNormal(pMesh, lControlPointIndex);
+			//uv
+			vData.vTexcoord = GetUV(pMesh, lControlPointIndex, mesh, i, j);
 
-				//uv
-				vData.vTexcoord = GetUV(pMesh, lControlPointIndex, mesh, i, j);
-
-				vbDataArray[lControlPointIndex] = vData;
-			}
-			else
-			{
-				VERTEX_DATA vData;
-
-				int lControlPointIndex =
-					mesh->vertexCount < mesh->uvCount ? pMesh->GetTextureUVIndex(i, j, FbxLayerElement::eTextureDiffuse) : pMesh->GetPolygonVertex(i, j);
-
-				//int index = pMesh->GetPolygonVertex(i, j);
-
-				//index
-				indexes.push_back(lControlPointIndex);
-
-				//pos       
-				pos = lControlPoints[lControlPointIndex];
-				vData.vPos = XMFLOAT3((float)pos.mData[0], (float)pos.mData[1], (float)pos.mData[2]);
-
-				//normal
-				vData.vNor = GetNormal(pMesh, lControlPointIndex);
-
-				//uv
-				vData.vTexcoord = GetUV(pMesh, lControlPointIndex, mesh, i, j);
-
-				vDataArray[lControlPointIndex] = vData;
-			}
+			vDataArray[lControlPointIndex] = vData;
 		}
 	}
 }
 
-XMFLOAT3 & FBXLoader::GetNormal(FbxMesh*	pMesh, int index)
+XMFLOAT3 FBXLoader::GetNormal(FbxMesh*	pMesh, int index)
 {
 
 	XMFLOAT3 vNor;
@@ -624,7 +577,7 @@ XMFLOAT3 & FBXLoader::GetNormal(FbxMesh*	pMesh, int index)
 	return vNor;
 }
 
-XMFLOAT2 & FBXLoader::GetUV(FbxMesh* pMesh, int index,MESH* mesh,int polyNum,int inPolyPos)
+XMFLOAT2 FBXLoader::GetUV(FbxMesh* pMesh, int index,MESH* mesh,int polyNum,int inPolyPos)
 {
 	XMFLOAT2 vTexcoord;
 	FbxVector2 uv;
@@ -650,11 +603,12 @@ XMFLOAT2 & FBXLoader::GetUV(FbxMesh* pMesh, int index,MESH* mesh,int polyNum,int
 			}
 		}
 
-		if ((float)mesh->uvCount > 0)
+		if ((float)uvCount > 0)
 		{
 			// 今回はUV1つしかやらない
 			// UVのV値反転
-			vTexcoord = XMFLOAT2((float)/*abs(1.0f - */uv.mData[0]/*)*/, (float)/*abs(*/1.0f - uv.mData[1])/*)*/;
+			//vTexcoord = XMFLOAT2((float)abs(1.0f - uv.mData[0]), (float)abs(1.0f - uv.mData[1]));
+			vTexcoord = XMFLOAT2((float)uv.mData[0], (float)1.0f - uv.mData[1]);
 		}
 		else
 			vTexcoord = XMFLOAT2(0, 0);
@@ -665,9 +619,9 @@ XMFLOAT2 & FBXLoader::GetUV(FbxMesh* pMesh, int index,MESH* mesh,int polyNum,int
 
 vector<POLY_TABLE>& FBXLoader::GetPolyTable(FbxMesh * pMesh, MESH * mesh, vector<POLY_TABLE>& outArray)
 {
-	outArray.resize(mesh->vertexCount);
+	outArray.resize(vertexCount);
 
-	for (int i = 0; i<mesh->vertexCount; i++)
+	for (int i = 0; i<vertexCount; i++)
 	{
 		for (int k = 0; k<faceCount; k++)
 		{
@@ -691,7 +645,6 @@ void FBXLoader::CopyBoneData(FbxMesh*	pMesh, MESH* mesh, vector<POLY_TABLE>& pPo
 	//FBXから抽出すべき情報は、頂点ごとのボーンインデックス、頂点ごとのボーンウェイト、バインド行列、ポーズ行列　の4項目
 
 	int i;
-	int iNumBone = 0;//ボーン数
 
 	//デフォーマーを得る 
 	if (pMesh->GetDeformerCount(FbxDeformer::eSkin) == 0)
@@ -699,34 +652,21 @@ void FBXLoader::CopyBoneData(FbxMesh*	pMesh, MESH* mesh, vector<POLY_TABLE>& pPo
 
 	FbxSkin* pSkinInfo = static_cast<FbxSkin*>(pMesh->GetDeformer(0, FbxDeformer::eSkin));
 
-	//ボーンを得る
-	mesh->boneCount = pSkinInfo->GetClusterCount();
-	iNumBone = mesh->boneCount;
-	if (iNumBone == 0)
-		return;
-
-	mesh->fbx_boneArray.resize(iNumBone);
-	for (i = 0; i<iNumBone; i++)
+	mesh->fbx_boneArray.resize(boneCount);
+	for (i = 0; i<boneCount; i++)
 	{
 		mesh->fbx_boneArray[i] = pSkinInfo->GetCluster(i);
 	}
-
-
-
 
 	//FBXから抽出すべき情報は、頂点ごとのボーンインデックス、頂点ごとのボーンウェイト、バインド行列、ポーズ行列　の4項目
 
 	int k;
 
-	/*iNumBone = fbxNode.m_boneArray.size();
-	if (iNumBone == 0)
-		return E_FAIL;*/
-
 	//通常の場合　（頂点数＞=UV数　pvVBが頂点インデックスベースの場合）
-	if (mesh->vertexCount >= mesh->uvCount)
+	if (vertexCount >= uvCount)
 	{
 		//それぞれのボーンに影響を受ける頂点を調べる　そこから逆に、頂点ベースでボーンインデックス・重みを整頓する
-		for (i = 0; i<iNumBone; i++)
+		for (i = 0; i<boneCount; i++)
 		{
 			int iNumIndex = mesh->fbx_boneArray[i]->GetControlPointIndicesCount();//このボーンに影響を受ける頂点数
 			int* piIndex = mesh->fbx_boneArray[i]->GetControlPointIndices();
@@ -752,7 +692,7 @@ void FBXLoader::CopyBoneData(FbxMesh*	pMesh, MESH* mesh, vector<POLY_TABLE>& pPo
 		int PolyIndex = 0;
 		int UVIndex = 0;
 		//それぞれのボーンに影響を受ける頂点を調べる　そこから逆に、頂点ベースでボーンインデックス・重みを整頓する
-		for (i = 0; i<iNumBone; i++)
+		for (i = 0; i<boneCount; i++)
 		{
 			int iNumIndex = mesh->fbx_boneArray[i]->GetControlPointIndicesCount();//このボーンに影響を受ける頂点数
 			int* piIndex = mesh->fbx_boneArray[i]->GetControlPointIndices();
@@ -788,9 +728,9 @@ void FBXLoader::CopyBoneData(FbxMesh*	pMesh, MESH* mesh, vector<POLY_TABLE>& pPo
 
 	//
 	//ボーンを生成
-	mesh->boneArray.resize(iNumBone);
+	mesh->boneArray.resize(boneCount);
 
-	for (int i = 0; i<iNumBone; i++)
+	for (int i = 0; i<boneCount; i++)
 	{
 		FbxAMatrix mat;
 		mesh->fbx_boneArray[i]->GetTransformLinkMatrix(mat);
@@ -812,36 +752,3 @@ void FBXLoader::CopyBoneData(FbxMesh*	pMesh, MESH* mesh, vector<POLY_TABLE>& pPo
 	//SetNewPoseMatrix(fbxNode, &meshNode);
 	//delete
 }
-
-FBX_MESH_NODE& FBXLoader::GetNode(const unsigned int id)
-{
-	return m_meshNodeArray[id];
-}
-//
-////ボーンを次のポーズ位置にセットする
-//void FBXLoader::SetNewPoseMatrices(int frame)
-//{
-//	int i,j;
-//	FbxTime time;
-//	time.SetTime(0, 0, 0, frame, 0, FbxTime::eFrames60);//30フレーム/秒　と推定　厳密には状況ごとに調べる必要あり
-//
-//	for (i = 0; i < m_meshNodeArray.size(); i++)
-//	{
-//		for (j = 0; j < m_meshNodeArray[i].m_boneArray.size(); j++)
-//		{
-//			//BONEの新しい状態取得
-//			m_meshNodeArray[i].m_boneArray[j]->SetTransformLinkMatrix(m_meshNodeArray[i].m_boneArray[j]->GetLink()->EvaluateGlobalTransform(time));
-//
-//			//for (int x = 0; x<4; x++)
-//			//{
-//			//	for (int y = 0; y<4; y++)
-//			//	{
-//			//		//行列代入
-//			//		node->m_boneArray[i]->SetTransformLinkMatrix()
-//			//		node->boneArray[i].mNewPose.r[y].m128_f32[x] = mat.Get(y, x);
-//			//	}
-//			//}
-//		}
-//	}
-//	
-//}

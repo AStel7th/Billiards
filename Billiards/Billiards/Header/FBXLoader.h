@@ -179,24 +179,27 @@ class FBXLoader
 public:
 	
 private:
+	MeshData meshData;
 	FBX* pFbx;
-	int faceCount;
-
-	std::vector<FBX_MESH_NODE>		m_meshNodeArray;
+	int	faceCount;
+	int	vertexCount;
+	int	uvCount;
+	int	indexCount;
+	int	materialCount;
+	int	boneCount;
 
 	vector<VERTEX_DATA> vDataArray;
 	vector<BONE_DATA_PER_VERTEX> vbDataArray;
-	vector<int> indexes;
 
-	void SetupNode(FbxNode* pNode, std::string parentName, MeshData& mData);
-	void Setup(MeshData& mData);
+	void SetupNode(FbxNode* pNode, std::string parentName);
+	void Setup();
 
 	void CopyVertexData(FbxMesh*	pMesh, MESH* mesh, FbxDouble3 translation, FbxDouble3 scale, FbxDouble3 rotation);
 	void CopyMatrialData(FbxSurfaceMaterial* mat, MESH* mesh, int indexCnt,vector<int>& indexArray,MaterialData& data);
 	void CopyBoneData(FbxMesh*	pMesh, MESH* mesh, vector<POLY_TABLE>& pPolyTable);
 
-	XMFLOAT3& GetNormal(FbxMesh*	pMesh, int index);
-	XMFLOAT2& GetUV(FbxMesh*	pMesh, int index, MESH* mesh, int polyNum, int inPolyPos);
+	XMFLOAT3 GetNormal(FbxMesh*	pMesh, int index);
+	XMFLOAT2 GetUV(FbxMesh*	pMesh, int index, MESH* mesh, int polyNum, int inPolyPos);
 	vector<POLY_TABLE>& GetPolyTable(FbxMesh*	pMesh, MESH* mesh, vector<POLY_TABLE>& outArray);
 
 	HRESULT CreateVertexBuffer(ID3D11Buffer** pBuffer, void* pVertices, uint32_t stride, uint32_t vertexCount);
@@ -218,12 +221,10 @@ public:
 	void Release();
 
 	// ì«Ç›çûÇ›
-	MeshData LoadFBX(const char* filename, string modelName);
-	FbxNode&	GetRootNode();
+	void LoadFBX(const char* filename, string modelName);
 
-	size_t GetNodesCount() { return m_meshNodeArray.size(); };		// ÉmÅ[ÉhêîÇÃéÊìæ
-
-	FBX_MESH_NODE&	GetNode(const unsigned int id);
-
-	//void SetNewPoseMatrices(int frame);
+	MeshData* GetMeshData()
+	{
+		return &meshData;
+	}
 };
