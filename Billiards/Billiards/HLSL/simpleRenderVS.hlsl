@@ -1,6 +1,3 @@
-//定義
-#define MAX_BONE_MATRICES 255
-
 //グローバル
 Texture2D g_texDecal: register(t0);//テクスチャーは レジスターt(n)
 SamplerState g_samLinear : register(s0);//サンプラーはレジスターs(n)
@@ -19,16 +16,11 @@ cbuffer global_1:register(b1)
 	matrix WVP;
 };
 
-cbuffer global_bones:register(b2)//ボーンのポーズ行列が入る
-{
-	matrix g_mConstBoneWorld[MAX_BONE_MATRICES];
-};
-
 cbuffer cbMaterial : register(b3)
 {
-	float4 g_Ambient = float4(0, 0, 0, 0);
-	float4 g_Diffuse = float4(1, 0, 0, 0);
-	float4 g_Specular = float4(1, 1, 1, 1);
+	float4 g_Ambient;
+	float4 g_Diffuse;
+	float4 g_Specular;
 	float g_Power;
 	float4 g_Emmisive;
 };
@@ -46,8 +38,6 @@ struct VSSkinIn
 	float3 Pos	: POSITION;//位置   
 	float3 Norm : NORMAL;//頂点法線
 	float2 Tex	: TEXCOORD;//テクスチャー座標
-	uint4  Bones : BONE_INDEX;//ボーンのインデックス
-	float4 Weights : BONE_WEIGHT;//ボーンの重み
 };
 //ピクセルシェーダーの入力（バーテックスバッファーの出力）　
 struct PSSkinIn
