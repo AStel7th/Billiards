@@ -205,5 +205,8 @@
     <FxCompile Include="HLSL\VertexColor.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>
+    <FxCompile Include="HLSL\AnimationInstance.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
