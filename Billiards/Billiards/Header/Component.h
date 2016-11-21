@@ -51,7 +51,7 @@ public:
 	XMFLOAT4X4 world;
 	int frame;
 
-	GraphicsComponent() : Component(), pGameObject(nullptr), pMeshData(nullptr)
+	GraphicsComponent() : Component(), pGameObject(nullptr), pMeshData(nullptr), frame(0)
 	{
 		id.push_back(typeid(this));
 	}
