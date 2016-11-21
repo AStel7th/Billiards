@@ -1,22 +1,14 @@
 #pragma once
 #include <map>
 #include <string>
-#include "MeshData.h"
+#include "FBXLoader.h"
 
 using namespace std;
-
-struct ModelData
-{
-	MeshData meshData;
-	int refCnt;
-
-	ModelData() : refCnt(0){}
-};
 
 class ResourceManager
 {
 private:
-	map<string, ModelData> modelList;
+	map<string, FBXLoader*> modelList;
 protected:
 	ResourceManager();
 public:
@@ -32,8 +24,4 @@ public:
 	bool Init();
 
 	MeshData* GetResource(const string & name, const char* filename = nullptr);
-
-	int GetRefCount(const string & name);
-
-	void ReduceReference(const string & name);
 };
