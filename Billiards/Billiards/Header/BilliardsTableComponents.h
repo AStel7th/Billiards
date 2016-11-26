@@ -11,6 +11,13 @@ public:
 	~BilliardsTablePhysics();
 
 	void Update();
+};
 
-	void receive(int message);
+class BilliardsTableGraphics : public GraphicsComponent
+{
+public:
+	BilliardsTableGraphics(GameObject* pObj, MeshData* mesh);
+	~BilliardsTableGraphics();
+
+	void Update();
 };
