@@ -7,6 +7,8 @@ using namespace std;
 
 class Component;
 
+const float GRAVITY = 9.8f;
+
 template<class TYPE = GameObject*>
 class _GameObject_
 {
@@ -54,6 +56,8 @@ protected:
 public:
 	XMFLOAT3 pos;
 	XMFLOAT3 rot;
+	XMFLOAT3 scale;
+	XMFLOAT4X4 world;
 
 	GameObject(const GameObject & gameObject) = delete;
 
