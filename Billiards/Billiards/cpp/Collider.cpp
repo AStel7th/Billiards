@@ -6,22 +6,22 @@
 #include "../Header/Collision.h"
 #include "../Header/CollisionFromFBX.h"
 
+#include <tchar.h>
+
 
 
 
 // 壁と球の反射ベクトルを計算
 // GetRefrectVelo(反射ベクトル,壁の法線,移動ベクトル,壁の反発係数)
-void GetRefrectVelo(XMFLOAT3 *pOut, XMFLOAT3 &N, XMFLOAT3 &V, float e)
+void GetRefrectVelo(XMVECTOR *pOut, XMVECTOR &N, XMVECTOR &V, float e)
 {
-	XMVECTOR valN = XMLoadFloat3(&N);
-	XMVECTOR valV = XMLoadFloat3(&V);
-	valN = XMVector3Normalize(valN);
-	XMStoreFloat3(pOut,valV - (1 + e)*XMVector3Dot(valN, valV)*valN);
+	N = XMVector3Normalize(N);
+	*pOut = V - (1 + e)*XMVector3Dot(N, V)*N;
 }
 
 
 // 壁との反射後の位置を算出
-void GetRelectedPos(float Res_time, Collider &c, XMFLOAT3 &RefV)
+void GetRelectedPos(float Res_time, Collider &c, XMVECTOR& RefV)
 {
 	PhysicsComponent* pPC = GetComponent<PhysicsComponent>(c.GetGameObject());
 	XMVECTOR p = XMLoadFloat3(&c.GetGameObject()->pos);
@@ -32,63 +32,13 @@ void GetRelectedPos(float Res_time, Collider &c, XMFLOAT3 &RefV)
 	// 0.99は壁にめり込まないための補正
 	p = pre_p + v * (1 - Res_time)*0.99f;
 	// 反射ベクトル
-	v = XMLoadFloat3(&RefV);
+	v = RefV;
 	// 位置を補正
 	p += v * Res_time;
 
 	XMStoreFloat3(&c.GetGameObject()->pos, p);
+	XMStoreFloat3(&pPC->velocity, v);
 }
-
-// TODO::ボールのPhysicsコンポーネントで管理
-//// 次の球の位置を取得
-//void GetNextPos(Collider &c)
-//{
-//	XMFLOAT3 RefV;	// 反射後の速度ベクトル
-//	D3DXVECTOR3 ColliPos;	// 衝突位置
-//	float Res_time = 0.0f;	// 衝突後の移動可能時間
-//
-//							// 重力を掛けて落とす
-//	c.GetPhysics()->velocity.y -= g_Gravity / 60;	// 1フレームで9.8/60(m/s)加速
-//
-//								// 今の速度で位置を更新
-//	c.GetPhysics()->prePos = c.GetGameObject()->pos;		// 前の位置を保存
-//	c.GetGameObject()->pos += s.v;			// 位置更新
-//
-//						// 壁との衝突をチェック
-//						// X左壁
-//	if (s.p.x<s.r && g_XLeft) {
-//		// 反射後の速度ベクトルを取得
-//		GetRefrectVelo(&RefV, D3DXVECTOR3(1, 0, 0), s.v, Wall_Ref);
-//		// 残り時間算出
-//		Res_time = (s.p.x - s.r) / s.v.x;
-//		// 反射後の位置を算出
-//		GetRelectedPos(Res_time, s, RefV);
-//	}
-//	// X右壁
-//	else if (s.p.x>640 - s.r && g_XRight) {
-//		GetRefrectVelo(&RefV, D3DXVECTOR3(-1, 0, 0), s.v, Wall_Ref);
-//		Res_time = (s.p.x - 640 + s.r) / s.v.x;
-//		GetRelectedPos(Res_time, s, RefV);
-//	}
-//	// Z手前壁
-//	if (s.p.z<s.r && g_ZNear) {
-//		GetRefrectVelo(&RefV, D3DXVECTOR3(0, 0, 1), s.v, Wall_Ref);
-//		Res_time = (s.p.z - s.r) / s.v.z;
-//		GetRelectedPos(Res_time, s, RefV);
-//	}
-//	// Z奥壁
-//	else if (s.p.z>640 - s.r && g_ZFar) {
-//		GetRefrectVelo(&RefV, D3DXVECTOR3(0, 0, -1), s.v, Wall_Ref);
-//		Res_time = (s.p.z - 640 + s.r) / s.v.z;
-//		GetRelectedPos(Res_time, s, RefV);
-//	}
-//	// Y下壁
-//	else if (s.p.y<s.r) {
-//		GetRefrectVelo(&RefV, D3DXVECTOR3(0, 1, 0), s.v, Wall_Ref);
-//		Res_time = (s.p.y - s.r) / s.v.y;
-//		GetRelectedPos(Res_time, s, RefV);
-//	}
-//}
 
 
 //システムへの登録
@@ -177,6 +127,12 @@ void Collider::All::HitCheck()
 	{
 		colVect[c * 2]->CollisionDetection(colVect[c * 2 + 1]);
 	}
+
+	TCHAR s[256];
+
+	_stprintf_s(s, _T("colCount %d\n"), colVect.size());
+
+	OutputDebugString(s);
 }
 
 
@@ -256,11 +212,11 @@ void SphereCollider::isCollision(SphereCollider * other)
 		&C2ColPos, &C2Velo))
 		return; // 何か失敗したようです
 
-				// 衝突後位置に移動
+	// 衝突後位置に移動
 	myVelo = C1Velo;
 	otherVelo = C2Velo;
-	myPos += myVelo;
-	otherPos += otherVelo;
+	myPos += C1Velo;
+	otherPos += C2Velo;
 
 	XMStoreFloat3(&pObject->pos, myPos);
 	XMStoreFloat3(&other->GetGameObject()->pos, otherPos);
@@ -278,80 +234,51 @@ void SphereCollider::isCollision(BoxCollider * other)
 
 void SphereCollider::isCollision(MeshCollider * other)
 {
-	////球とメッシュの当たり判定
-	//float t = 0;
-	//XMVECTOR ColPos,C1Velo;
+	//球とメッシュの当たり判定
+	vector<NODE_COLLISION> nodeCol = other->GetMesh()->GetMeshData();
 
-	//vector<NODE_COLLISION> nodeCol = other->GetMesh()->GetMeshData();
+	PhysicsComponent* myPC = GetComponent<PhysicsComponent>(pObject);
 
-	//PhysicsComponent* myPC = GetComponent<PhysicsComponent>(pObject);
-	//PhysicsComponent* otherPC = GetComponent<PhysicsComponent>(other->GetGameObject());
+	XMVECTOR myPrePos = XMLoadFloat3(&myPC->prePos);
+	XMVECTOR myPos = XMLoadFloat3(&pObject->pos);
+	XMVECTOR RefV;											// 反射後の速度ベクトル
+	XMVECTOR otherVelo = XMLoadFloat3(&myPC->velocity);
+	XMVECTOR ColPos;
+	float t = 0;
 
-	//XMVECTOR myPrePos = XMLoadFloat3(&myPC->prePos);
-	//XMVECTOR myPos = XMLoadFloat3(&pObject->pos);
-	//XMVECTOR otherPrePos = XMLoadFloat3(&otherPC->prePos);
-	//XMVECTOR otherPos = XMLoadFloat3(&other->GetGameObject()->pos);
+	for (int i = 0; i < nodeCol.size(); i++)
+	{
+		if (nodeCol[i].m_polyDataArray.size() == 0)
+			continue;
 
-	//for (int i = 0; i < nodeCol.size(); i++)
-	//{
-	//	if (nodeCol[i].m_polyDataArray.size() == 0)
-	//		continue;
+		for (int j = 0; j < nodeCol[i].m_polyDataArray.size(); j++)
+		{
+			XMVECTOR normal = XMLoadFloat3(&nodeCol[i].m_polyDataArray[j].normal);
+			XMVECTOR pos[3] =
+			{
+				XMLoadFloat3(&nodeCol[i].m_polyDataArray[j].vertexArray[0].vPos),
+				XMLoadFloat3(&nodeCol[i].m_polyDataArray[j].vertexArray[1].vPos),
+				XMLoadFloat3(&nodeCol[i].m_polyDataArray[j].vertexArray[2].vPos)
+			};
 
-	//	for (int j = 0; j < nodeCol[i].m_polyDataArray.size(); j++)
-	//	{
-	//		XMVECTOR normal = XMLoadFloat3(&nodeCol[i].m_polyDataArray[j].normal);
-	//		XMVECTOR pos[3] = 
-	//		{
-	//			XMLoadFloat3(&nodeCol[i].m_polyDataArray[j].vertexArray[0].vPos),
-	//			XMLoadFloat3(&nodeCol[i].m_polyDataArray[j].vertexArray[1].vPos),
-	//			XMLoadFloat3(&nodeCol[i].m_polyDataArray[j].vertexArray[2].vPos)
-	//		};
+			// 衝突している円とメッシュの衝突位置を検出
+			if (!Collision::SpherePolygonCollision(
+				radius,
+				&myPrePos, &myPos,
+				&normal, pos,
+				&t,
+				&ColPos))
+				continue;	// 衝突していないようです
+			else
+			{
+				// 反射後の速度ベクトルを取得
+				GetRefrectVelo(&RefV, normal, otherVelo, WALL_REPULSION);
 
-	//		// 衝突している円とメッシュの衝突位置を検出
-	//		if (!Collision::SpherePolygonCollision(
-	//			radius,
-	//			&myPrePos, &myPos,
-	//			&normal, pos,
-	//			&t,
-	//			&ColPos))
-	//			return;	// 衝突していないようです
-	//	}
-	//}
-	//
-
-	//			// 衝突位置を前位置として保存
-	//myPos = ColPos;
-	//myPrePos = ColPos;
-
-	//XMVECTOR myVelo = XMLoadFloat3(&myPC->velocity);
-	//XMVECTOR otherVelo = XMLoadFloat3(&otherPC->velocity);
-	//float myMass = myPC->mass;
-	//float otherMass = otherPC->mass;
-
-
-	//// 衝突後の速度を算出
-	//if (!Collision::CalcParticleColliAfterPos(
-	//	&C1ColPos, &myVelo,
-	//	&C2ColPos, &otherVelo,
-	//	myMass, otherMass,
-	//	SPHERE_REPULSION, SPHERE_REPULSION,		// 球の反発係数
-	//	t,
-	//	&C1ColPos, &C1Velo,
-	//	&C2ColPos, &C2Velo))
-	//	return; // 何か失敗したようです
-
-	//			// 衝突後位置に移動
-	//myVelo = C1Velo;
-	//otherVelo = C2Velo;
-	//myPos += myVelo;
-	//otherPos += otherVelo;
-
-	//XMStoreFloat3(&pObject->pos, myPos);
-	//XMStoreFloat3(&other->GetGameObject()->pos, otherPos);
-	//XMStoreFloat3(&myPC->prePos, myPrePos);
-	//XMStoreFloat3(&otherPC->prePos, otherPrePos);
-	//XMStoreFloat3(&myPC->velocity, myVelo);
-	//XMStoreFloat3(&otherPC->velocity, otherVelo);
+				// 反射後の位置に移動
+				GetRelectedPos(t, *other, RefV);
+			}
+		}
+	}
 }
 
 
@@ -418,6 +345,7 @@ void MeshCollider::Create(GameObject* pObj, ColliderType type, const char* fpath
 
 	pMeshCol = NEW CollisionFromFBX();
 	pMeshCol->LoadFBX(fpath);
+	pMeshCol->SetMatrix(pObject->world);
 
 	pObjectTree = NEW ObjectTree();
 	pObjectTree->pCol = this;
@@ -425,6 +353,9 @@ void MeshCollider::Create(GameObject* pObj, ColliderType type, const char* fpath
 
 void MeshCollider::Update()
 {
+	pMeshCol->SetMatrix(pObject->world);
+	pMeshCol->Update();
+
 	pObjectTree->Remove();		// 一度リストから外れる
 
 								// 再登録
@@ -445,7 +376,51 @@ void MeshCollider::CollisionDetection(Collider * pCol)
 
 void MeshCollider::isCollision(SphereCollider * other)
 {
-	int a = 0;
+	//球とメッシュの当たり判定
+	vector<NODE_COLLISION> nodeCol = GetMesh()->GetMeshData();
+
+	PhysicsComponent* otherPC = GetComponent<PhysicsComponent>(other->GetGameObject());
+
+	XMVECTOR otherPrePos = XMLoadFloat3(&otherPC->prePos);
+	XMVECTOR otherPos = XMLoadFloat3(&other->GetGameObject()->pos);
+	XMVECTOR RefV;	// 反射後の速度ベクトル
+	XMVECTOR otherVelo = XMLoadFloat3(&otherPC->velocity);
+	XMVECTOR ColPos;
+	float t = 0;
+
+	for (int i = 0; i < nodeCol.size(); i++)
+	{
+		if (nodeCol[i].m_polyDataArray.size() == 0)
+			continue;
+
+		for (int j = 0; j < nodeCol[i].m_polyDataArray.size(); j++)
+		{
+			XMVECTOR normal = XMLoadFloat3(&nodeCol[i].m_polyDataArray[j].normal);
+			XMVECTOR pos[3] =
+			{
+				XMLoadFloat3(&nodeCol[i].m_polyDataArray[j].vertexArray[0].vPos),
+				XMLoadFloat3(&nodeCol[i].m_polyDataArray[j].vertexArray[1].vPos),
+				XMLoadFloat3(&nodeCol[i].m_polyDataArray[j].vertexArray[2].vPos)
+			};
+
+			// 衝突している円とメッシュの衝突位置を検出
+			if (!Collision::SpherePolygonCollision(
+				other->radius,
+				&otherPrePos, &otherPos,
+				&normal, pos,
+				&t,
+				&ColPos))
+				continue;	// 衝突していないようです
+			else
+			{
+				// 反射後の速度ベクトルを取得
+				GetRefrectVelo(&RefV, normal,otherVelo, WALL_REPULSION);
+
+				// 反射後の位置に移動
+				GetRelectedPos(t, *other, RefV);
+			}
+		}
+	}
 }
 
 void MeshCollider::isCollision(BoxCollider * other)

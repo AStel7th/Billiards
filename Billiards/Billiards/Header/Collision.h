@@ -3,7 +3,7 @@
 #include <DirectXMath.h>
 using namespace DirectX;
 
-#define EPSIRON 0.00001f	// 誤差
+const float EPSIRON = 0.00001f;	// 誤差
 
 class Collision
 {
@@ -320,7 +320,7 @@ public:
 	static bool SpherePolygonCollision(
 		FLOAT r,
 		XMVECTOR *pPre_pos, XMVECTOR *pPos,
-		XMVECTOR *pNormal, XMVECTOR pPlane_pos[3],
+		XMVECTOR *pNormal, XMVECTOR *pPlane_pos,
 		FLOAT *t,
 		XMVECTOR *pOut_colli
 	)
@@ -333,12 +333,15 @@ public:
 		// 平面と中心点の距離を算出
 		FLOAT Dot_C0;
 		XMStoreFloat(&Dot_C0, XMVector3Dot(C0, N));
+		//Dot_C0 -= r;
 
 		FLOAT dist_plane_to_point = fabs(Dot_C0);
 
 		// 進行方向と法線の関係をチェック
 		FLOAT Dot;
 		XMStoreFloat(&Dot, XMVector3Dot(D, N));
+		if (Dot >= 0)
+			return false;
 
 		// 平面と平行に移動してめり込んでいるスペシャルケース
 		if ((EPSIRON - fabs(Dot) > 0.0f) && (dist_plane_to_point < r)) {
@@ -351,11 +354,17 @@ public:
 
 		// 交差時間の算出
 		*t = (r - Dot_C0) / Dot;
+		*t = fabs(*t);
 
 		// 衝突位置の算出
 		*pOut_colli = *pPre_pos + (*t) * D;
 
-		if (!PointInPolygon(pOut_colli, &pPlane_pos))
+		// ポリゴン内の衝突座標取得
+		D = XMVector3Normalize(D);
+		XMVECTOR colPos = *pOut_colli + r * D;
+
+		// ポリゴン内に衝突点があるかどうか
+		if (!PointInPolygon(&colPos, pPlane_pos))
 			return false;
 
 		// めり込んでいたら衝突として処理終了
@@ -375,16 +384,16 @@ public:
 
 
 	// ポリゴンの中に衝突点があるかチェック
-	static bool PointInPolygon(XMVECTOR *pInPolyPos, XMVECTOR *pPlane_pos[3])
+	static bool PointInPolygon(XMVECTOR *pInPolyPos, XMVECTOR *pPlane_pos)
 	{
-		XMVECTOR AB = *pPlane_pos[1] - *pPlane_pos[0];
-		XMVECTOR BP = *pInPolyPos - *pPlane_pos[1];
+		XMVECTOR AB = pPlane_pos[1] - pPlane_pos[0];
+		XMVECTOR BP = *pInPolyPos - pPlane_pos[1];
 
-		XMVECTOR BC = *pPlane_pos[2] - *pPlane_pos[1];
-		XMVECTOR CP = *pInPolyPos - *pPlane_pos[2];
+		XMVECTOR BC = pPlane_pos[2] - pPlane_pos[1];
+		XMVECTOR CP = *pInPolyPos - pPlane_pos[2];
 		
-		XMVECTOR CA = *pPlane_pos[0] - *pPlane_pos[2];
-		XMVECTOR AP = *pInPolyPos - *pPlane_pos[0];
+		XMVECTOR CA = pPlane_pos[0] - pPlane_pos[2];
+		XMVECTOR AP = *pInPolyPos - pPlane_pos[0];
 
 		XMVECTOR cross1 = XMVector3Cross(AB, BP);
 		XMVECTOR cross2 = XMVector3Cross(BC, CP);
@@ -398,7 +407,7 @@ public:
 		XMStoreFloat(&dot13, XMVector3Dot(cross1, cross3));
 
 
-		if (dot12 > 0 && dot13 > 0) 
+		if (dot12 >= 0 && dot13 >= 0) 
 		{
 			//三角形の内側に点がある
 			return true;

@@ -3,7 +3,8 @@
 #include <vector>
 #include <DirectXMath.h>
 
-#define SPHERE_REPULSION 0.75f
+const float SPHERE_REPULSION = 0.75f;
+const float WALL_REPULSION = 0.78f;		// 球と壁の反発係数
 
 using namespace std;
 using namespace DirectX;
@@ -82,8 +83,10 @@ public:
 class SphereCollider : public Collider
 {
 private:
-	float radius;
+	
 public:
+	float radius;
+
 	SphereCollider() : radius(1.0f){}
 	virtual ~SphereCollider(){}
 
@@ -125,6 +128,7 @@ class MeshCollider : public Collider
 {
 private:
 	CollisionFromFBX* pMeshCol;
+	XMFLOAT4X4 world;
 	float size;	//TODO::現在空間登録用の包み込み範囲がメッシュだと指定できていない、今後考えなければならない
 public:
 	MeshCollider() : pMeshCol(nullptr), size(1.0f){}
