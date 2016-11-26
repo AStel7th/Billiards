@@ -28,8 +28,8 @@
 #define DDS_LUMINANCE   0x00020000  // DDPF_LUMINANCE
 #define DDS_ALPHA       0x00000002  // DDPF_ALPHA
 
-const int WINDOW_WIDTH = 1280;
-const int WINDOW_HEIGHT = 768;
+const int WINDOW_WIDTH = 640;
+const int WINDOW_HEIGHT = 480;
 
 using namespace Microsoft::WRL;
 
