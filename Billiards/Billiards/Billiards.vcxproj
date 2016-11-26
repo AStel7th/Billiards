@@ -158,9 +158,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cpp\Ball.cpp" />
+    <ClCompile Include="cpp\BallComponents.cpp" />
     <ClCompile Include="cpp\BilliardsTable.cpp" />
-    <ClCompile Include="cpp\BilliardsTableGraphics.cpp" />
-    <ClCompile Include="cpp\BilliardsTablePhysics.cpp" />
+    <ClCompile Include="cpp\BilliardsTableComponents.cpp" />
     <ClCompile Include="cpp\Collider.cpp" />
     <ClCompile Include="cpp\CollisionFromFBX.cpp" />
     <ClCompile Include="cpp\FBXLoader.cpp" />
@@ -171,6 +172,7 @@
     <ClCompile Include="cpp\DrawSystem.cpp" />
     <ClCompile Include="cpp\GameObject.cpp" />
     <ClCompile Include="cpp\GraphicsPipeline.cpp" />
+    <ClCompile Include="cpp\InputDeviceManager.cpp" />
     <ClCompile Include="cpp\main.cpp" />
     <ClCompile Include="cpp\MaterialData.cpp" />
     <ClCompile Include="cpp\MeshData.cpp" />
@@ -181,14 +183,16 @@
     <ClCompile Include="cpp\DebugFont.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Header\Ball.h" />
+    <ClInclude Include="Header\BallComponents.h" />
     <ClInclude Include="Header\BilliardsTable.h" />
-    <ClInclude Include="Header\BilliardsTableGraphics.h" />
-    <ClInclude Include="Header\BilliardsTablePhysics.h" />
+    <ClInclude Include="Header\BilliardsTableComponents.h" />
     <ClInclude Include="Header\Camera.h" />
     <ClInclude Include="Header\Collider.h" />
     <ClInclude Include="Header\Collision.h" />
     <ClInclude Include="Header\CollisionFromFBX.h" />
     <ClInclude Include="Header\Component.h" />
+    <ClInclude Include="Header\InputDeviceManager.h" />
     <ClInclude Include="Header\FBXInitialize.h" />
     <ClInclude Include="Header\FBXLoader.h" />
     <ClInclude Include="Header\FBXRendererDX11.h" />
