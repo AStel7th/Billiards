@@ -32,6 +32,7 @@ struct FBX_VERTEX_DATA_COL
 
 struct POLYGON_DATA
 {
+	COLLISION_VERTEX_DATA originVertexArray[3];	//3角形ポリゴンのみ対応
 	COLLISION_VERTEX_DATA vertexArray[3];	//3角形ポリゴンのみ対応
 	XMFLOAT3 normal;			//ポリゴンの法線
 };
@@ -39,7 +40,7 @@ struct POLYGON_DATA
 struct NODE_COLLISION
 {
 	vector<POLYGON_DATA> m_polyDataArray;
-	float	mat4x4[16];
+	XMFLOAT4X4	mLocal;
 };
 
 struct FBX_COLLISION_NODE
@@ -50,7 +51,7 @@ struct FBX_COLLISION_NODE
 	DWORD faceCount;//そのマテリアルであるポリゴン数
 	DWORD vertexCount;
 
-	float	mat4x4[16];	// Matrix
+	XMFLOAT4X4	mLocal;	// Matrix
 
 	FBX_COLLISION_NODE() :faceCount(), vertexCount()
 	{
@@ -78,9 +79,15 @@ public:
 
 	HRESULT LoadFBX(const char* filename);
 
+	void Update();
+
+	void SetMatrix(XMFLOAT4X4& world);
+
 	vector<NODE_COLLISION> GetMeshData();
 private:
-	unique_ptr<FBX> fbx;
+	FBX* fbx;
+
+	XMFLOAT4X4 world;
 
 	vector<FBX_COLLISION_NODE> m_fbxNodeArray;
 	vector<NODE_COLLISION> m_nodeArray;

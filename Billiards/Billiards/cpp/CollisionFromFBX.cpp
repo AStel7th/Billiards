@@ -8,7 +8,7 @@ CollisionFromFBX::CollisionFromFBX()
 
 CollisionFromFBX::~CollisionFromFBX()
 {
-	
+	SAFE_DELETE(fbx);
 }
 
 HRESULT CollisionFromFBX::LoadFBX(const char * filename)
@@ -18,7 +18,7 @@ HRESULT CollisionFromFBX::LoadFBX(const char * filename)
 
 	HRESULT hr = S_OK;
 
-	fbx = make_unique<FBX>();
+	fbx = NEW FBX();
 	hr = fbx->Initialaize(filename, eAXIS_DIRECTX);
 	if (FAILED(hr))
 		return hr;
@@ -152,6 +152,11 @@ void CollisionFromFBX::CopyVertexData(FbxMesh*	pMesh, FBX_COLLISION_NODE* meshNo
 
 void CollisionFromFBX::ComputeNodeMatrix(FbxNode* pNode, FBX_COLLISION_NODE* meshNode)
 {
+	XMMATRIX m(1, 0, 0, 0,
+		0, -1, 0, 0,
+		0, 0, -1, 0,
+		0, 0, 0, 1);
+
 	if (!pNode || !meshNode)
 	{
 		return;
@@ -162,15 +167,21 @@ void CollisionFromFBX::ComputeNodeMatrix(FbxNode* pNode, FBX_COLLISION_NODE* mes
 	lGlobal.SetIdentity();
 
 	if (pNode != fbx->mScene->GetRootNode())
-	{
 		lGlobal = lEvaluator->GetNodeGlobalTransform(pNode);
 
-		FBXMatrixToFloat16(&lGlobal, meshNode->mat4x4);
-	}
-	else
+	for (int x = 0; x<4; x++)
 	{
-		FBXMatrixToFloat16(&lGlobal, meshNode->mat4x4);
+		for (int y = 0; y<4; y++)
+		{
+			meshNode->mLocal.m[y][x] = (float)lGlobal.Get(y, x);
+		}
 	}
+
+	XMMATRIX mat;
+	mat = XMLoadFloat4x4(&meshNode->mLocal);
+
+	mat = XMMatrixMultiply(m, mat);
+	XMStoreFloat4x4(&meshNode->mLocal, mat);
 }
 
 HRESULT CollisionFromFBX::CreateNodes()
@@ -193,7 +204,7 @@ HRESULT CollisionFromFBX::CreateNodes()
 		
 		VertexConstruction(fbxNode, collisionNode);
 
-		memcpy(collisionNode.mat4x4, fbxNode.mat4x4, sizeof(float) * 16);
+		collisionNode.mLocal = fbxNode.mLocal;
 
 		m_nodeArray[i] = collisionNode;
 	}
@@ -226,6 +237,7 @@ HRESULT CollisionFromFBX::VertexConstruction(FBX_COLLISION_NODE & fbxNode, NODE_
 				(float)data.nor.mData[1],
 				(float)data.nor.mData[2]);
 
+			polyData.originVertexArray[j] = vertexData;
 			polyData.vertexArray[j] = vertexData;
 		}
 
@@ -242,6 +254,30 @@ HRESULT CollisionFromFBX::VertexConstruction(FBX_COLLISION_NODE & fbxNode, NODE_
 	return hr;
 }
 
+void CollisionFromFBX::Update()
+{
+	XMMATRIX _world = XMLoadFloat4x4(&world);
+	for (auto it = m_nodeArray.begin(); it != m_nodeArray.end(); ++it)
+	{
+		XMMATRIX _local = XMLoadFloat4x4(&(*it).mLocal);
+		XMMATRIX lw = _local * _world;
+		for (auto it2 = (*it).m_polyDataArray.begin(); it2 != (*it).m_polyDataArray.end(); ++it2)
+		{
+			for (int i = 0; i < 3; ++i)
+			{
+				XMVECTOR _pos = XMLoadFloat3(&(*it2).originVertexArray[i].vPos);
+				_pos = XMVector3Transform(_pos ,lw);
+
+				XMStoreFloat3(&(*it2).vertexArray[i].vPos, _pos);
+			}
+		}
+	}
+}
+
+void CollisionFromFBX::SetMatrix(XMFLOAT4X4 & w)
+{
+	world = w;
+}
 
 vector<NODE_COLLISION> CollisionFromFBX::GetMeshData()
 {

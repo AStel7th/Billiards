@@ -474,6 +474,11 @@ HRESULT FBXLoader::CreateIndexBuffer(DWORD dwSize, int* pIndex, ID3D11Buffer** p
 //
 void FBXLoader::ComputeNodeMatrix(FbxNode* pNode, MESH* mesh)
 {
+	XMMATRIX m(1, 0, 0, 0,
+		0, -1, 0, 0,
+		0, 0, -1, 0,
+		0, 0, 0, 1);
+
 	if (!pNode || !mesh)
 	{
 		return;
@@ -493,6 +498,11 @@ void FBXLoader::ComputeNodeMatrix(FbxNode* pNode, MESH* mesh)
 			mesh->mLocal.m[y][x] = (float)lGlobal.Get(y, x);
 		}
 	}
+	XMMATRIX mat;
+	mat = XMLoadFloat4x4(&mesh->mLocal);
+
+	mat = XMMatrixMultiply(m, mat);
+	XMStoreFloat4x4(&mesh->mLocal, mat);
 }
 
 //
