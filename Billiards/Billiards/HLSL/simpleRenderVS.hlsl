@@ -1,7 +1,3 @@
-//グローバル
-Texture2D g_texDecal: register(t0);//テクスチャーは レジスターt(n)
-SamplerState g_samLinear : register(s0);//サンプラーはレジスターs(n)
-
 cbuffer global_0:register(b0)
 {
 	float4 g_vLight;  //ライトの方向ベクトル
@@ -25,15 +21,8 @@ cbuffer cbMaterial : register(b3)
 	float4 g_Emmisive;
 };
 
-
-//スキニング後の頂点・法線が入る
-struct Skin
-{
-	float4 Pos;
-	float3 Norm;
-};
 //バーテックスバッファーの入力
-struct VSSkinIn
+struct VS_INPUT
 {
 	float3 Pos	: POSITION;//位置   
 	float3 Norm : NORMAL;//頂点法線
@@ -51,7 +40,7 @@ struct PSSkinIn
 //
 //PSSkinIn VSSkin(VSSkinIn input )
 //バーテックスシェーダー
-PSSkinIn vs_main(VSSkinIn input)
+PSSkinIn vs_main(VS_INPUT input)
 {
 	PSSkinIn output;
 
