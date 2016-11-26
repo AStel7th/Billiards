@@ -15,7 +15,6 @@ public:
 	vector<type_index> id;
 	Component(){}
 	virtual ~Component() {}
-	virtual void receive(int message) = 0;
 };
 
 class InputComponent : public Component
@@ -34,7 +33,7 @@ public:
 	XMFLOAT3 acceleration;	// ‰Á‘¬“x
 	float	 mass;			// Ž¿—Ê
 
-	PhysicsComponent(): Component(), pGameObject(nullptr),prePos(0.0f,0.0f,0.0f),velocity(0.0f, 0.0f, 0.0f),acceleration(0.0f, 0.0f, 0.0f),mass(0.0f)
+	PhysicsComponent(): Component(), pGameObject(nullptr),prePos(0.0f,0.0f,0.0f),velocity(0.0f, 0.0f, 0.0f),acceleration(0.0f, 0.0f, 0.0f),mass(1.0f)
 	{
 		id.push_back(typeid(this));
 	}
