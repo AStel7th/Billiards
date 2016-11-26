@@ -167,6 +167,16 @@ HRESULT DrawSystem::Init(unsigned int msaaSamples)
 		return E_FAIL;
 	}
 
+	//コンスタントバッファーインスタンス作成  
+	bd.Usage = D3D11_USAGE_DYNAMIC;
+	bd.ByteWidth = sizeof(CBMATRIX_INSTANCING);
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	if (FAILED(d3d11.pD3DDevice->CreateBuffer(&bd, NULL, &pcBufferInstance)))
+	{
+		return E_FAIL;
+	}
+
 	//コンスタントバッファーボーン用　作成  
 	bd.Usage = D3D11_USAGE_DYNAMIC;
 	bd.ByteWidth = sizeof(SHADER_GLOBAL_BONES);
@@ -218,7 +228,10 @@ void DrawSystem::SetMatrix(vector<GraphicsComponent*>& pGClist)
 
 	for (uint32_t i = 0; i<pGClist.size(); i++)
 	{
-		pSrvInstanceData[i].mWorld = pGClist[i]->world;
+		XMMATRIX _world = XMMatrixIdentity();
+		_world *= XMMatrixRotationQuaternion(XMVectorSet(pGClist[i]->pGameObject->rot.x, pGClist[i]->pGameObject->rot.y, pGClist[i]->pGameObject->rot.z, 1.0f));
+		_world *= XMMatrixTranslation(pGClist[i]->pGameObject->pos.x, pGClist[i]->pGameObject->pos.y, pGClist[i]->pGameObject->pos.z);
+		XMStoreFloat4x4(&pSrvInstanceData[i].mWorld, _world);
 	}
 
 	d3d11.pD3DDeviceContext->Unmap(pTransformStructuredBuffer.Get(), 0);
@@ -248,7 +261,7 @@ bool DrawSystem::Draw()
 	if (SUCCEEDED(d3d11.pD3DDeviceContext->Map(pcBuffer0.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &pData)))
 	{
 		SHADER_GLOBAL sg;
-		sg.lightDir = XMFLOAT4(1.0f, -1.0f, 1.0f, 0.0f);
+		sg.lightDir = XMFLOAT4(100.0f, 100.0f, 100.0f, 0.0f);
 		sg.eye = XMFLOAT4(view._41, view._42, view._43, 0);
 		memcpy_s(pData.pData, pData.RowPitch, (void*)&sg, sizeof(SHADER_GLOBAL));
 		d3d11.pD3DDeviceContext->Unmap(pcBuffer0.Get(), 0);
@@ -264,14 +277,14 @@ bool DrawSystem::Draw()
 			if (isAnim)
 			{
 				d3d11.pD3DDeviceContext->VSSetShader(pvsFBXAnimInstancing->GetShader(), NULL, 0);
-				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBuffer1.GetAddressOf());
+				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBufferInstance.GetAddressOf());
 				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), NULL, 0);
 				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutAnimationInstance.Get());
 			}
 			else
 			{
 				d3d11.pD3DDeviceContext->VSSetShader(pvsFBXInstancing->GetShader(), NULL, 0);
-				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBuffer1.GetAddressOf());
+				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBufferInstance.GetAddressOf());
 				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), NULL, 0);
 				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutStaticMeshInstance.Get());
 			}
@@ -327,17 +340,17 @@ void DrawSystem::Render(GraphicsComponent* pGC,bool isAnim)
 
 		CBMATRIX*	cbFBX = (CBMATRIX*)MappedResource.pData;
 
-		XMMATRIX _world = XMLoadFloat4x4(&pGC->world);
+		XMMATRIX _world = XMLoadFloat4x4(&pGC->pGameObject->world);
 		XMMATRIX _view = XMLoadFloat4x4(&view);
 		XMMATRIX _proj = XMLoadFloat4x4(&proj);
 		XMMATRIX _local = XMLoadFloat4x4(&mesh.mLocal);
 
 		// 左手系
-		cbFBX->mWorld = pGC->world;
+		cbFBX->mWorld = pGC->pGameObject->world;
 		cbFBX->mView = view;
 		cbFBX->mProj = proj;
 
-		XMStoreFloat4x4(&cbFBX->mWVP, XMMatrixTranspose(/*local**/_world*_view*_proj));
+		XMStoreFloat4x4(&cbFBX->mWVP, XMMatrixTranspose(_local*_world*_view*_proj));
 
 		d3d11.pD3DDeviceContext->Unmap(pcBuffer1.Get(), 0);
 
@@ -426,23 +439,20 @@ void DrawSystem::RenderInstancing(vector<GraphicsComponent*>& pGClist, int refCn
 			continue;
 
 		D3D11_MAPPED_SUBRESOURCE MappedResource;
-		d3d11.pD3DDeviceContext->Map(pcBuffer1.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
+		d3d11.pD3DDeviceContext->Map(pcBufferInstance.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
 
-		CBMATRIX*	cbFBX = (CBMATRIX*)MappedResource.pData;
+		CBMATRIX_INSTANCING*	cbFBX = (CBMATRIX_INSTANCING*)MappedResource.pData;
 
-		XMMATRIX _world = XMMatrixIdentity();
 		XMMATRIX _view	= XMLoadFloat4x4(&view);
 		XMMATRIX _proj	= XMLoadFloat4x4(&proj);
 		XMMATRIX _local = XMLoadFloat4x4(&mesh.mLocal);
 
 		// 左手系
-		XMStoreFloat4x4(&cbFBX->mWorld, _world);
 		cbFBX->mView  = view;
 		cbFBX->mProj  = proj;
+		cbFBX->mLocal = mesh.mLocal;
 
-		XMStoreFloat4x4(&cbFBX->mWVP, XMMatrixTranspose(/*local**/_world*_view*_proj));
-
-		d3d11.pD3DDeviceContext->Unmap(pcBuffer1.Get(), 0);
+		d3d11.pD3DDeviceContext->Unmap(pcBufferInstance.Get(), 0);
 
 		pGClist[0]->pMeshData->SetAnimationFrame(j, pGClist[0]->frame);
 

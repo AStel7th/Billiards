@@ -55,6 +55,13 @@ struct CBMATRIX
 	XMFLOAT4X4 mWVP;
 };
 
+struct CBMATRIX_INSTANCING
+{
+	XMFLOAT4X4 mView;
+	XMFLOAT4X4 mProj;
+	XMFLOAT4X4 mLocal;
+};
+
 struct SRVPerInstanceData
 {
 	XMFLOAT4X4 mWorld;
@@ -91,6 +98,7 @@ private:
 
 	ComPtr<ID3D11Buffer> pcBuffer0 = nullptr;
 	ComPtr<ID3D11Buffer> pcBuffer1 = nullptr;
+	ComPtr<ID3D11Buffer> pcBufferInstance = nullptr;
 	ComPtr<ID3D11Buffer> pcBoneBuffer = nullptr;
 	ComPtr<ID3D11Buffer> pTransformStructuredBuffer = nullptr;
 	ComPtr<ID3D11ShaderResourceView> pTransformSRV = nullptr;
