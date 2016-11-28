@@ -3,32 +3,6 @@
 #include "../Header/Direct3D11.h"
 
 
-//拡張子取得関数
-inline string GetExtension(const string &path)
-{
-	string ext;
-	size_t pos1 = path.rfind('.');
-	if (pos1 != string::npos) {
-		ext = path.substr(pos1 + 1, path.size() - pos1);
-		string::iterator itr = ext.begin();
-		while (itr != ext.end()) {
-			*itr = tolower(*itr);
-			itr++;
-		}
-		itr = ext.end() - 1;
-		while (itr != ext.begin()) {    // パスの最後に\0やスペースがあったときの対策
-			if (*itr == 0 || *itr == 32) {
-				ext.erase(itr--);
-			}
-			else {
-				itr--;
-			}
-		}
-	}
-
-	return ext;
-}
-
 FBXLoader::FBXLoader() : pFbx(nullptr)
 {
 	faceCount	= 0;
@@ -144,7 +118,7 @@ void FBXLoader::SetupNode(FbxNode* pNode, std::string parentName)
 				if (!mat)
 					continue;
 
-				MaterialData* matData = MaterialManager::Instance().CreateMaterial(meshData.GetName() + to_string(i));
+				MaterialData* matData = MaterialManager::Instance().CreateMaterial(meshData.GetName() + "_" + mat->GetName());
 				int indexCount;
 				vector<int> pIndex;
 				int faceNum;
@@ -354,40 +328,7 @@ void FBXLoader::CopyMatrialData(FbxSurfaceMaterial* mat, MESH* mesh, int indexCn
 		if (it->second.size())
 		{
 			std::string path = it->second[0];
-			std::string ext = GetExtension(path);
-
-			WCHAR	wstr[512];
-			size_t wLen = 0;
-			mbstowcs_s(&wLen, wstr, path.size() + 1, path.c_str(), _TRUNCATE);
-
-			TexMetadata metadata;
-			ScratchImage image;
-
-			//Resourceからのパスを追加
-			TCHAR res[512] = L"Resource/";
-			wcscat_s(res, wstr);
-
-			if (ext == "tga")
-			{
-				hr = LoadFromTGAFile(res, &metadata, image);
-				if (FAILED(hr)) {
-					return;
-				}
-			}
-			else
-			{
-				hr = LoadFromWICFile(res, 0, &metadata, image);
-				if (FAILED(hr)) {
-					return;
-				}
-			}
-
-
-			// シェーダーリソースビューの作成
-			hr = CreateShaderResourceView(Direct3D11::Instance().pD3DDevice.Get(), image.GetImages(), image.GetImageCount(), metadata, &data.pSRV);
-			if (FAILED(hr)) {
-				return;
-			}
+			data.SetTexture(path);
 		}
 	}
 
