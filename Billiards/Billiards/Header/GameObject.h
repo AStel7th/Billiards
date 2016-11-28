@@ -51,9 +51,12 @@ protected:
 	GameObject();
 	GameObject(const DestroyMode & mode);
 	virtual ~GameObject();
+
+	void SetTag(const string& t);
 	
 	virtual void Destroy();
 public:
+	string tag;
 	XMFLOAT3 pos;
 	XMFLOAT3 rot;
 	XMFLOAT3 scale;
@@ -73,6 +76,8 @@ public:
 		static void Clear();
 
 		static void Update();
+
+		static GameObject* GameObjectFindWithTag(const string& t);
 	};
 };
 

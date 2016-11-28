@@ -41,14 +41,20 @@ inline GameObject* GameObject::_Unregister_(GameObject* pObj)
 	return next;
 }
 
-GameObject::GameObject() : pPrev(nullptr), pNext(nullptr),mode(DestroyMode::None),pos(0.0f, 0.0f, 0.0f),rot(0.0f, 0.0f, 0.0f)
+GameObject::GameObject() : pPrev(nullptr), pNext(nullptr),mode(DestroyMode::None),pos(0.0f, 0.0f, 0.0f),rot(0.0f, 0.0f, 0.0f),scale(1.0f,1.0f,1.0f)
 {
+	tag = "";
 	GameObject::_Register_(this);
 }
 
 GameObject::~GameObject()
 {
 
+}
+
+void GameObject::SetTag(const string & t)
+{
+	tag = t;
 }
 
 void GameObject::Destroy()
@@ -113,4 +119,24 @@ void GameObject::All::Update()
 		//次のタスクへ移動
 		pObj = _next;
 	}
+}
+
+GameObject * GameObject::All::GameObjectFindWithTag(const string & t)
+{
+	GameObject* pObj = pBegin; //現在のタスク
+	
+	//末尾までループする
+	while (pObj != nullptr)
+	{
+		//次のオブジェクトを事前取得
+		GameObject* _next = pObj->pNext;
+
+		if (pObj->tag == t)
+			return pObj;
+
+		//次のタスクへ移動
+		pObj = _next;
+	}
+
+	return nullptr;
 }
