@@ -14,7 +14,7 @@ public:
 class BallGraphics : public GraphicsComponent
 {
 public:
-	BallGraphics(GameObject* pObj, MeshData* mesh);
+	BallGraphics(GameObject* pObj, MeshData* mesh,int num);
 
 	virtual ~BallGraphics();
 
