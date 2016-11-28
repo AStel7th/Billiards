@@ -1,6 +1,7 @@
 #include "../Header/Game.h"
 #include "../Header/func.h"
 #include "../Header/Direct3D11.h"
+#include "../Header/InputDeviceManager.h"
 #include <memory>
 #include "../Header/GameObject.h"
 //
@@ -32,6 +33,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
 	// システムの初期化
 	g_pGame = make_unique<Game>();
+
+	InputDeviceManager::Instance().Init(hInstance);
 	
 	// メッセージループ
 	MSG msg = { 0 };
@@ -44,6 +47,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		}
 		else
 		{
+			InputDeviceManager::Instance().Update();
 			g_pGame->Run();
 		}
 	}
@@ -65,6 +69,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, UINT wParam, LONG lParam)
 			
 			// 指定されたウィンドウを破棄
 			DestroyWindow(hWnd);
+
+		break;
+
+	case WM_SETCURSOR: // カーソルの設定
+		
+		SetCursor(nullptr);
 
 		break;
 

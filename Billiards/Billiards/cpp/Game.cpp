@@ -7,10 +7,26 @@
 #include "../Header/Collider.h"
 #include "../Header/BilliardsTable.h"
 #include "../Header/Ball.h"
+#include "../Header/Cues.h"
 //#include "../Header/Effect.h"
 
 Game::Game()
 {
+	// マウスカーソルをゲーム中は非表示にする
+	// ウィンドウのクライアント領域を取得する
+	RECT rc;
+	GetClientRect(Direct3D11::Instance().GetHWND(), &rc);
+
+	// クライアント領域を画面座標に変換する
+	POINT pt = { rc.left, rc.top };
+	POINT pt2 = { rc.right, rc.bottom };
+	ClientToScreen(Direct3D11::Instance().GetHWND(), &pt);
+	ClientToScreen(Direct3D11::Instance().GetHWND(), &pt2);
+	SetRect(&rc, pt.x, pt.y, pt2.x, pt2.y);
+
+	// カーソルの動作範囲を制限する
+	ClipCursor(&rc);
+
 	//Sprite::Create();
 	DrawSystem::Instance().Init(1);
 
@@ -38,7 +54,8 @@ Game::Game()
 	Create<Ball>(6, 4.9f, 78.0f, 2.9f);
 	Create<Ball>(7, -4.9f, 78.0f, -2.9f);
 	Create<Ball>(8, -4.9f, 78.0f, 2.9f);
-	Create<Ball>(9, 0.0f, 78.0f, 0.0f);
+	Create<Ball>(9, 0.0f, 78.0f, 0.0f);		//TODO::中央に設置すると、2つのポリゴンから衝突分の反射ベクトルが返ってくるため修正する
+	Create<Cues>();
 }
 
 Game::~Game()
@@ -52,7 +69,6 @@ bool Game::Run()
 	timeCtrl->SetFPS(60);
 
 	//EffectManager::Instance().Update();
-
 	GameObject::All::Update();
 	Collider::All::HitCheck();
 
