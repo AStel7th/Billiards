@@ -30,8 +30,9 @@ BilliardsTableGraphics::BilliardsTableGraphics(GameObject * pObj, MeshData* mesh
 	pMeshData = mesh;
 
 	XMMATRIX _world = XMMatrixIdentity();
-	_world = XMMatrixRotationQuaternion(XMVectorSet(pGameObject->rot.x, pGameObject->rot.y, pGameObject->rot.z, 1.0f));
-	_world = XMMatrixTranslation(pGameObject->pos.x, pGameObject->pos.y, pGameObject->pos.z);
+	_world *= XMMatrixRotationQuaternion(XMVectorSet(pGameObject->rot.x, pGameObject->rot.y, pGameObject->rot.z, 1.0f));
+	_world *= XMMatrixScaling(pGameObject->scale.x, pGameObject->scale.y, pGameObject->scale.z);
+	_world *= XMMatrixTranslation(pGameObject->pos.x, pGameObject->pos.y, pGameObject->pos.z);
 
 	XMStoreFloat4x4(&world, _world);
 

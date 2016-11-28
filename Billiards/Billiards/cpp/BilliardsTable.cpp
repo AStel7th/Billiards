@@ -19,6 +19,7 @@ BilliardsTable::BilliardsTable() : GameObject()
 
 	XMMATRIX wMat = XMMatrixIdentity();
 	wMat *= XMMatrixRotationQuaternion(XMVectorSet(rot.x, rot.y, rot.z, 1.0f));
+	wMat *= XMMatrixScaling(scale.x, scale.y, scale.z);
 	wMat *= XMMatrixTranslation(pos.x, pos.y, pos.z);
 
 	XMStoreFloat4x4(&world, wMat);
@@ -33,15 +34,16 @@ BilliardsTable::~BilliardsTable()
 
 void BilliardsTable::Update()
 {
+	pPhysicsComponent->Update();
+
+	pGraphicsComponent->Update();
+
 	XMMATRIX wMat = XMMatrixIdentity();
 	wMat *= XMMatrixRotationQuaternion(XMVectorSet(rot.x, rot.y, rot.z, 1.0f));
+	wMat *= XMMatrixScaling(scale.x, scale.y, scale.z);
 	wMat *= XMMatrixTranslation(pos.x, pos.y, pos.z);
 
 	XMStoreFloat4x4(&world, wMat);
 
-	pPhysicsComponent->Update();
-
-	pGraphicsComponent->Update();
-	
 	pCollider->Update();
 }
