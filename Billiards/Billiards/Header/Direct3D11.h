@@ -288,4 +288,9 @@ public:
 	{
 		hWnd = hwnd;
 	}
+
+	HWND& GetHWND()
+	{
+		return hWnd;
+	}
 };
