@@ -230,6 +230,7 @@ void DrawSystem::SetMatrix(vector<GraphicsComponent*>& pGClist)
 	{
 		XMMATRIX _world = XMMatrixIdentity();
 		_world *= XMMatrixRotationQuaternion(XMVectorSet(pGClist[i]->pGameObject->rot.x, pGClist[i]->pGameObject->rot.y, pGClist[i]->pGameObject->rot.z, 1.0f));
+		_world *= XMMatrixScaling(pGClist[i]->pGameObject->scale.x, pGClist[i]->pGameObject->scale.y, pGClist[i]->pGameObject->scale.z);
 		_world *= XMMatrixTranslation(pGClist[i]->pGameObject->pos.x, pGClist[i]->pGameObject->pos.y, pGClist[i]->pGameObject->pos.z);
 		XMStoreFloat4x4(&pSrvInstanceData[i].mWorld, _world);
 	}
@@ -340,13 +341,16 @@ void DrawSystem::Render(GraphicsComponent* pGC,bool isAnim)
 
 		CBMATRIX*	cbFBX = (CBMATRIX*)MappedResource.pData;
 
-		XMMATRIX _world = XMLoadFloat4x4(&pGC->pGameObject->world);
+		XMMATRIX _world = XMMatrixIdentity();
+		_world *= XMMatrixRotationQuaternion(XMVectorSet(pGC->pGameObject->rot.x, pGC->pGameObject->rot.y, pGC->pGameObject->rot.z, 1.0f));
+		_world *= XMMatrixScaling(pGC->pGameObject->scale.x, pGC->pGameObject->scale.y, pGC->pGameObject->scale.z);
+		_world *= XMMatrixTranslation(pGC->pGameObject->pos.x, pGC->pGameObject->pos.y, pGC->pGameObject->pos.z);
 		XMMATRIX _view = XMLoadFloat4x4(&view);
 		XMMATRIX _proj = XMLoadFloat4x4(&proj);
 		XMMATRIX _local = XMLoadFloat4x4(&mesh.mLocal);
 
 		// ¶ŽèŒn
-		cbFBX->mWorld = pGC->pGameObject->world;
+		XMStoreFloat4x4(&cbFBX->mWorld,_world);
 		cbFBX->mView = view;
 		cbFBX->mProj = proj;
 
