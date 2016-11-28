@@ -5,6 +5,8 @@
 #include <d3d11.h>
 #include <unordered_map>
 #include <string>
+#include "../DirectXTex/WICTextureLoader.h"
+#include "../DirectXTex/DirectXTex.h"
 #include "func.h"
 
 using namespace DirectX;
@@ -25,6 +27,7 @@ class MaterialData
 private:
 	
 public:
+	string name;
 	XMFLOAT4	ambient;
 	XMFLOAT4	diffuse;
 	XMFLOAT4	specular;
@@ -40,7 +43,7 @@ public:
 	MaterialData();
 	virtual ~MaterialData() {}
 
-	void SetTexture();
+	void SetTexture(const string& path);
 };
 
 class MaterialManager
