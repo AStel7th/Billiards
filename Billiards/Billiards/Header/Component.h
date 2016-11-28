@@ -20,6 +20,13 @@ public:
 class InputComponent : public Component
 {
 public:
+	GameObject* pGameObject;
+
+	InputComponent() : Component()
+	{
+		id.push_back(typeid(this));
+	}
+
 	virtual ~InputComponent() {}
 	virtual void Update() = 0;
 };
