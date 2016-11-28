@@ -164,6 +164,8 @@
     <ClCompile Include="cpp\BilliardsTableComponents.cpp" />
     <ClCompile Include="cpp\Collider.cpp" />
     <ClCompile Include="cpp\CollisionFromFBX.cpp" />
+    <ClCompile Include="cpp\Cues.cpp" />
+    <ClCompile Include="cpp\CuesComponents.cpp" />
     <ClCompile Include="cpp\FBXLoader.cpp" />
     <ClCompile Include="cpp\FBXRendererDX11.cpp" />
     <ClCompile Include="cpp\Game.cpp" />
@@ -192,6 +194,7 @@
     <ClInclude Include="Header\Collision.h" />
     <ClInclude Include="Header\CollisionFromFBX.h" />
     <ClInclude Include="Header\Component.h" />
+    <ClInclude Include="Header\CuesComponents.h" />
     <ClInclude Include="Header\InputDeviceManager.h" />
     <ClInclude Include="Header\FBXInitialize.h" />
     <ClInclude Include="Header\FBXLoader.h" />
@@ -207,6 +210,7 @@
     <ClInclude Include="Header\GraphicsPipeline.h" />
     <ClInclude Include="Header\MaterialData.h" />
     <ClInclude Include="Header\MeshData.h" />
+    <ClInclude Include="Header\Cues.h" />
     <ClInclude Include="Header\ResourceManager.h" />
     <ClInclude Include="Header\Shader.h" />
     <ClInclude Include="Header\SpaceDivision.h" />
