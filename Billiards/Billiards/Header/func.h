@@ -91,3 +91,26 @@ inline float XMVector3LengthSq(XMFLOAT3* f)
 
 	return a;
 }
+
+inline XMFLOAT3 MatrixTransformPosition(XMFLOAT4X4* mat)
+{
+	XMFLOAT3 pos;
+
+	pos.x = mat->_41;
+	pos.y = mat->_42;
+	pos.z = mat->_43;
+
+	return pos;
+}
+
+
+inline XMFLOAT3 MatrixTransformScale(XMFLOAT4X4* mat)
+{
+	XMFLOAT3 scale;
+
+	scale.x = mat->_11;
+	scale.y = mat->_22;
+	scale.z = mat->_33;
+
+	return scale;
+}
