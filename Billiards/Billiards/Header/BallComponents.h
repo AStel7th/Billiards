@@ -9,6 +9,8 @@ public:
 	virtual ~BallPhysics();
 
 	void Update();
+
+	void OnCollisionEnter(GameObject* other);
 };
 
 class BallGraphics : public GraphicsComponent
