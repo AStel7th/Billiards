@@ -1,10 +1,25 @@
 #pragma once
 #include "Component.h"
 
-class CuesInput : public InputComponent
+class CuesPhysics;
+
+class CuesControllerInput : public InputComponent
 {
 private:
 	GameObject* whiteBall;
+public:
+	CuesControllerInput(GameObject* pObj);
+
+	virtual ~CuesControllerInput();
+
+	void Update();
+};
+
+class CuesInput : public InputComponent
+{
+private:
+	CuesPhysics* pPhysics;
+	float movePos;
 public:
 	CuesInput(GameObject* pObj);
 
@@ -21,6 +36,8 @@ public:
 	virtual ~CuesPhysics();
 
 	void Update();
+
+	void OnCollisionEnter(GameObject* other);
 };
 
 class CuesGraphics : public GraphicsComponent

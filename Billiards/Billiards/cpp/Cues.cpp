@@ -3,25 +3,43 @@
 #include "../Header/Collider.h"
 #include "../Header/CuesComponents.h"
 
+CuesController::CuesController() : GameObject(), pInputComponent(nullptr)
+{
+	SetName("CuesController");
+
+	SetTag("CuesController");
+
+	pInputComponent = NEW CuesControllerInput(this);
+
+	SetWorld();
+	
+	AddChild(Create<Cues>());
+}
+
+CuesController::~CuesController()
+{
+	SAFE_DELETE(pInputComponent);
+}
+
+void CuesController::Update()
+{
+	pInputComponent->Update();
+}
+
 Cues::Cues() : GameObject(),pMesh(nullptr),pCollider(nullptr),pInputComponent(nullptr),pPhysicsComponent(nullptr),pGraphicsComponent(nullptr)
 {
 	pMesh = ResourceManager::Instance().GetResource("Cues", "Resource/Cues.fbx");
 
-	pInputComponent = NEW CuesInput(this);
-
 	pPhysicsComponent = NEW CuesPhysics(this);
+	
+	pInputComponent = NEW CuesInput(this);
 
 	pGraphicsComponent = NEW CuesGraphics(this, pMesh);
 
 	pCollider = NEW SphereCollider();
-	pCollider->Create(this, Sphere, 0.5f);
+	pCollider->Create(this, Sphere, 1.5f);
 
-	XMMATRIX wMat = XMMatrixIdentity();
-	wMat *= XMMatrixRotationQuaternion(XMVectorSet(rot.x, rot.y, rot.z, 1.0f));
-	wMat *= XMMatrixScaling(scale.x, scale.y, scale.z);
-	wMat *= XMMatrixTranslation(pos.x, pos.y, pos.z);
-
-	XMStoreFloat4x4(&world, wMat);
+	SetWorld();
 }
 
 Cues::~Cues()
@@ -34,16 +52,11 @@ Cues::~Cues()
 
 void Cues::Update()
 {
+	pInputComponent->Update();
+
 	pPhysicsComponent->Update();
 
 	pGraphicsComponent->Update();
-
-	XMMATRIX wMat = XMMatrixIdentity();
-	wMat *= XMMatrixRotationQuaternion(XMVectorSet(rot.x, rot.y, rot.z, 1.0f));
-	wMat *= XMMatrixScaling(scale.x, scale.y, scale.z);
-	wMat *= XMMatrixTranslation(pos.x, pos.y, pos.z);
-
-	XMStoreFloat4x4(&world, wMat);
 
 	pCollider->Update();
 }
