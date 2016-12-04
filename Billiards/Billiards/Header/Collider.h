@@ -3,8 +3,8 @@
 #include <vector>
 #include <DirectXMath.h>
 
-const float SPHERE_REPULSION = 0.75f;
-const float WALL_REPULSION = 0.78f;		// 球と壁の反発係数
+const float SPHERE_REPULSION = 0.85f;
+const float WALL_REPULSION = 0.82f;		// 球と壁の反発係数
 
 using namespace std;
 using namespace DirectX;
@@ -48,7 +48,7 @@ protected:
 	ObjectTree*			pObjectTree;//空間分割用ノードクラス
 	GameObject*			pObject;
 	ColliderType		colType;
-
+	vector<string>		targetTagList;
 	//システムへの登録
 	static inline void _Register_(Collider* pObj);
 
@@ -64,6 +64,8 @@ public:
 	virtual void Update() = 0;
 
 	GameObject* GetGameObject();
+
+	void AddTargetTag(const string& t);
 	
 	virtual void Destroy();
 
@@ -105,11 +107,12 @@ public:
 class BoxCollider : public Collider
 {
 private:
-	XMFLOAT3 minPos;	//BOXの左下
-	XMFLOAT3 maxPos;
 	XMFLOAT3 center;
 	float size;
 public:
+	XMFLOAT3 minPos;	//BOXの左下
+	XMFLOAT3 maxPos;
+
 	BoxCollider() : minPos(), maxPos(),center(),size(1.0f){}
 	virtual ~BoxCollider() {}
 

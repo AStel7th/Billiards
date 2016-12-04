@@ -83,7 +83,8 @@ public:
 
 		// 衝突時間が0未満1より大きい場合、衝突しない
 		//   if( (t_plus < 0 || t_plus > 1) && (t_minus < 0 || t_minus > 1)) return false;
-		if (t_minus < 0 || t_minus > 1) return false;
+		if (t_minus < 0 || t_minus > 1) 
+			return false;
 
 		// 衝突時間の決定（t_minus側が常に最初の衝突）
 		*pOut_t = t_minus;
@@ -223,28 +224,28 @@ public:
 	}
 
 	//球とAABB
-	static bool HitCheckSphereAndAABB(const SPHERE &sphere, const XMFLOAT3& v,     // 球の情報
-		const AABB& rcAABB2, const XMVECTOR& v1)	//AABBの情報
+	static bool HitCheckSphereAndAABB(XMFLOAT3 &sPos, float r,const XMFLOAT3& v,     // 球の情報
+		const XMFLOAT3& minPos, const XMFLOAT3& maxPos, const XMFLOAT3& v1)	//AABBの情報
 	{
 		FLOAT SqLen = 0;   // 長さのべき乗の値を格納
 			
 		// 各軸で点が最小値以下もしくは最大値以上ならば、差を考慮
-		if (sphere.center.x + v.x < rcAABB2.min.x)  // i=0はX、1はY、2はZの意味です
-			SqLen += (sphere.center.x - rcAABB2.min.x) * (sphere.center.x - rcAABB2.min.x);
-		if (sphere.center.x + v.x > rcAABB2.max.x)
-			SqLen += (sphere.center.x - rcAABB2.max.x) * (sphere.center.x - rcAABB2.max.x);
-		if (sphere.center.y + v.y < rcAABB2.min.y)
-			SqLen += (sphere.center.y - rcAABB2.min.y) * (sphere.center.y - rcAABB2.min.y);
-		if (sphere.center.y + v.y > rcAABB2.max.y)
-			SqLen += (sphere.center.y - rcAABB2.max.y) * (sphere.center.y - rcAABB2.max.y);
-		if (sphere.center.z + v.z < rcAABB2.min.z)
-			SqLen += (sphere.center.z - rcAABB2.min.z) * (sphere.center.z - rcAABB2.min.z);
-		if (sphere.center.z + v.z > rcAABB2.max.z)
-			SqLen += (sphere.center.z - rcAABB2.max.z) * (sphere.center.z - rcAABB2.max.z);
+		if (sPos.x + v.x < minPos.x)  // i=0はX、1はY、2はZの意味です
+			SqLen += (sPos.x - minPos.x) * (sPos.x - minPos.x);
+		if (sPos.x + v.x > maxPos.x)
+			SqLen += (sPos.x - maxPos.x) * (sPos.x - maxPos.x);
+		if (sPos.y + v.y < minPos.y)
+			SqLen += (sPos.y - minPos.y) * (sPos.y - minPos.y);
+		if (sPos.y + v.y > maxPos.y)
+			SqLen += (sPos.y - maxPos.y) * (sPos.y - maxPos.y);
+		if (sPos.z + v.z < minPos.z)
+			SqLen += (sPos.z - minPos.z) * (sPos.z - minPos.z);
+		if (sPos.z + v.z > maxPos.z)
+			SqLen += (sPos.z - maxPos.z) * (sPos.z - maxPos.z);
 			
 		FLOAT dis =	sqrt(SqLen);
 
-		if (dis <= sphere.radius)
+		if (dis <= r)
 		{
 			return true;
 		}
