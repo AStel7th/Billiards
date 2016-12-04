@@ -5,7 +5,9 @@
 
 Ball::Ball(int num,float x, float y, float z) : GameObject(), pMesh(nullptr), pCollider(nullptr), pPhysicsComponent(nullptr), pGraphicsComponent(nullptr)
 {
-	SetTag("Ball" + to_string(num));
+	SetName("Ball" + to_string(num));
+
+	SetTag("Ball");
 
 	pMesh = ResourceManager::Instance().GetResource("Ball" + to_string(num), "Resource/Ball.fbx");
 
@@ -20,11 +22,7 @@ Ball::Ball(int num,float x, float y, float z) : GameObject(), pMesh(nullptr), pC
 	pos.y = y;
 	pos.z = z;
 
-	XMMATRIX wMat = XMMatrixIdentity();
-	wMat *= XMMatrixRotationQuaternion(XMVectorSet(rot.x, rot.y, rot.z, 1.0f));
-	wMat *= XMMatrixTranslation(pos.x, pos.y, pos.z);
-
-	XMStoreFloat4x4(&world, wMat);
+	SetWorld();
 }
 
 Ball::~Ball()
@@ -39,13 +37,6 @@ void Ball::Update()
 	pPhysicsComponent->Update();
 
 	pGraphicsComponent->Update();
-	
-	XMMATRIX wMat = XMMatrixIdentity();
-	wMat *= XMMatrixRotationQuaternion(XMVectorSet(rot.x, rot.y, rot.z, 1.0f));
-	wMat *= XMMatrixScaling(scale.x, scale.y, scale.z);
-	wMat *= XMMatrixTranslation(pos.x, pos.y, pos.z);
-
-	XMStoreFloat4x4(&world, wMat);
 	
 	pCollider->Update();
 }
