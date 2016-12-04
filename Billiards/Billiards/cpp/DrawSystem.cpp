@@ -228,10 +228,7 @@ void DrawSystem::SetMatrix(vector<GraphicsComponent*>& pGClist)
 
 	for (uint32_t i = 0; i<pGClist.size(); i++)
 	{
-		XMMATRIX _world = XMMatrixIdentity();
-		_world *= XMMatrixRotationQuaternion(XMVectorSet(pGClist[i]->pGameObject->rot.x, pGClist[i]->pGameObject->rot.y, pGClist[i]->pGameObject->rot.z, 1.0f));
-		_world *= XMMatrixScaling(pGClist[i]->pGameObject->scale.x, pGClist[i]->pGameObject->scale.y, pGClist[i]->pGameObject->scale.z);
-		_world *= XMMatrixTranslation(pGClist[i]->pGameObject->pos.x, pGClist[i]->pGameObject->pos.y, pGClist[i]->pGameObject->pos.z);
+		XMMATRIX _world = XMLoadFloat4x4(&pGClist[i]->pGameObject->worldMat);
 		XMStoreFloat4x4(&pSrvInstanceData[i].mWorld, _world);
 	}
 
@@ -272,6 +269,10 @@ bool DrawSystem::Draw()
 	{
 		bool isAnim;
 		int refCnt = (*it).second.size();
+
+		if (refCnt == 0)
+			continue;
+
 		if (refCnt > 1)
 		{
 			isAnim = ResourceManager::Instance().GetResource((*it).first)->isAnimation;
@@ -310,6 +311,7 @@ bool DrawSystem::Draw()
 				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutStaticMesh.Get());
 			}
 
+
 			Render((*it).second[0],isAnim);
 		}
 	}
@@ -322,6 +324,11 @@ bool DrawSystem::Draw()
 	d3d11.pD3DDeviceContext->PSSetShader(NULL, NULL, 0);
 
 	d3d11.Present(1, 0);
+
+	for (auto it = opaqueDrawList.begin(); it != opaqueDrawList.end(); ++it)
+	{
+		it->second.clear();
+	}
 
 	return true;
 }
@@ -341,16 +348,13 @@ void DrawSystem::Render(GraphicsComponent* pGC,bool isAnim)
 
 		CBMATRIX*	cbFBX = (CBMATRIX*)MappedResource.pData;
 
-		XMMATRIX _world = XMMatrixIdentity();
-		_world *= XMMatrixRotationQuaternion(XMVectorSet(pGC->pGameObject->rot.x, pGC->pGameObject->rot.y, pGC->pGameObject->rot.z, 1.0f));
-		_world *= XMMatrixScaling(pGC->pGameObject->scale.x, pGC->pGameObject->scale.y, pGC->pGameObject->scale.z);
-		_world *= XMMatrixTranslation(pGC->pGameObject->pos.x, pGC->pGameObject->pos.y, pGC->pGameObject->pos.z);
+		XMMATRIX _world = XMLoadFloat4x4(&pGC->pGameObject->worldMat);
 		XMMATRIX _view = XMLoadFloat4x4(&view);
 		XMMATRIX _proj = XMLoadFloat4x4(&proj);
 		XMMATRIX _local = XMLoadFloat4x4(&mesh.mLocal);
 
 		// ¶ŽèŒn
-		XMStoreFloat4x4(&cbFBX->mWorld,_world);
+		cbFBX->mWorld = pGC->pGameObject->worldMat;
 		cbFBX->mView = view;
 		cbFBX->mProj = proj;
 
@@ -546,7 +550,12 @@ void DrawSystem::AddDrawList(DRAW_PRIOLITY priolity, const string& tag, Graphics
 		}
 		else
 		{
-			modelName->second.push_back(pGC);
+			vector<GraphicsComponent*>::iterator it = find(modelName->second.begin(), modelName->second.end(), pGC);
+
+			if (it == modelName->second.end())
+			{
+				modelName->second.push_back(pGC);
+			}
 		}
 	}
 	else if (priolity == DRAW_PRIOLITY::Alpha)
@@ -559,7 +568,12 @@ void DrawSystem::AddDrawList(DRAW_PRIOLITY priolity, const string& tag, Graphics
 		}
 		else
 		{
-			modelName->second.push_back(pGC);
+			vector<GraphicsComponent*>::iterator it = find(modelName->second.begin(), modelName->second.end(), pGC);
+
+			if (it == modelName->second.end())
+			{
+				modelName->second.push_back(pGC);
+			}
 		}
 	}
 }
