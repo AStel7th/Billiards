@@ -29,6 +29,17 @@ enum DestroyMode
 	Destroy,	//GameObject::Update が呼び出された時に消去
 };
 
+class Transform
+{
+public:
+	XMFLOAT3 pos;
+	XMFLOAT3 rot;
+	XMFLOAT3 scale;
+	XMFLOAT4X4 matrix;
+
+	Transform() : pos(0.0f, 0.0f, 0.0f), rot(0.0f, 0.0f, 0.0f), scale(1.0f, 1.0f, 1.0f) {}
+	~Transform(){}
+};
 
 //ゲーム内のオブジェクトの元になるクラス
 //各オブジェクトはこのクラスを継承して作成する
@@ -39,6 +50,8 @@ private:
 	GameObject*		pNext;	//自身の後ポインタ
 	DestroyMode		mode;	//消去手段
 	vector<Component*> componentList;
+	vector<GameObject*> childObjectList;
+	bool activeFlg;
 	//システムへの登録
 	static inline void _Register_(GameObject* pObj);
 
@@ -47,26 +60,49 @@ private:
 
 	virtual void Update() = 0;
 
+	void RemoveChild(GameObject* pObj);
+
 protected:
 	GameObject();
 	GameObject(const DestroyMode & mode);
 	virtual ~GameObject();
 
 	void SetTag(const string& t);
+
+	void SetName(const string& n);
 	
-	virtual void Destroy();
 public:
+	string name;
 	string tag;
 	XMFLOAT3 pos;
 	XMFLOAT3 rot;
 	XMFLOAT3 scale;
-	XMFLOAT4X4 world;
+	XMFLOAT4X4 localMat;
+	XMFLOAT4X4 worldMat;
+	/*Transform local;
+	Transform world;*/
+	GameObject* pParent;
 
 	GameObject(const GameObject & gameObject) = delete;
 
 	void AddComponent(Component* pCom);
 
 	vector<Component*> GetComponentList();
+
+	void SetWorld();
+
+	XMFLOAT3 GetWorldPos();
+
+	//void SetWorldPos(XMFLOAT3& pos);
+	//void SetWorldPos(XMVECTOR& pos);
+
+	void SetActive(bool flg);
+
+	void AddChild(GameObject* child);
+
+	bool isActive();
+
+	virtual void Destroy();
 
 	virtual bool isDestroy();
 
@@ -77,7 +113,7 @@ public:
 
 		static void Update();
 
-		static GameObject* GameObjectFindWithTag(const string& t);
+		static GameObject* GameObjectFindWithName(const string& n);
 	};
 };
 
