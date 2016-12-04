@@ -6,6 +6,8 @@ class MeshCollider;
 class BilliardsTableGraphics;
 class MeshData;
 
+const int POCKET_COUNT = 6;
+
 class BilliardsTable : public GameObject
 {
 private:

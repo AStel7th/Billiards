@@ -3,9 +3,13 @@
 #include "../Header/Collider.h"
 #include "../Header/BilliardsTableComponents.h"
 #include "../Header/MeshData.h"
+#include "../Header/Pocket.h"
 
 BilliardsTable::BilliardsTable() : GameObject()
 {
+	SetName("Table");
+
+	SetTag("Table");
 	//pMesh = ResourceManager::Instance().GetResource("Table", "Resource/billiardsTableCollider.fbx");
 	pMesh = ResourceManager::Instance().GetResource("Table", "Resource/BilliardsTableModel.fbx");
 	//pMesh = ResourceManager::Instance().GetResource("Table", "Resource/goblin2.fbx");
@@ -17,12 +21,13 @@ BilliardsTable::BilliardsTable() : GameObject()
 	pCollider = NEW MeshCollider();
 	pCollider->Create(this,Mesh,"Resource/billiardsTableCollider.fbx" ,180.0f);
 
-	XMMATRIX wMat = XMMatrixIdentity();
-	wMat *= XMMatrixRotationQuaternion(XMVectorSet(rot.x, rot.y, rot.z, 1.0f));
-	wMat *= XMMatrixScaling(scale.x, scale.y, scale.z);
-	wMat *= XMMatrixTranslation(pos.x, pos.y, pos.z);
+	SetWorld();
 
-	XMStoreFloat4x4(&world, wMat);
+	for (int i = 0; i < POCKET_COUNT; ++i)
+	{
+		Create<Pocket>(i + 1,-130.0f + (130.0f*(i % 3)),40.0f,-70.0f + (140.0f*(i % 2)));
+	}
+	
 }
 
 BilliardsTable::~BilliardsTable()
@@ -37,13 +42,6 @@ void BilliardsTable::Update()
 	pPhysicsComponent->Update();
 
 	pGraphicsComponent->Update();
-
-	XMMATRIX wMat = XMMatrixIdentity();
-	wMat *= XMMatrixRotationQuaternion(XMVectorSet(rot.x, rot.y, rot.z, 1.0f));
-	wMat *= XMMatrixScaling(scale.x, scale.y, scale.z);
-	wMat *= XMMatrixTranslation(pos.x, pos.y, pos.z);
-
-	XMStoreFloat4x4(&world, wMat);
 
 	pCollider->Update();
 }
