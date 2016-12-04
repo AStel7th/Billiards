@@ -2,6 +2,7 @@
 #include <DirectXMath.h>
 #include <vector>
 #include <typeindex>
+#include "func.h"
 
 using namespace std;
 using namespace DirectX;
@@ -47,6 +48,7 @@ public:
 
 	virtual ~PhysicsComponent(){}
 	virtual void Update() = 0;
+	virtual void OnCollisionEnter(GameObject* other) {}
 };
 
 class GraphicsComponent : public Component
@@ -54,7 +56,6 @@ class GraphicsComponent : public Component
 public:
 	GameObject* pGameObject;
 	MeshData* pMeshData;
-	XMFLOAT4X4 world;
 	int frame;
 
 	GraphicsComponent() : Component(), pGameObject(nullptr), pMeshData(nullptr), frame(0)
