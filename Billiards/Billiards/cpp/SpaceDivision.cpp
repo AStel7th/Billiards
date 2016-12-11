@@ -1,4 +1,7 @@
 #include "../Header/SpaceDivision.h"
+#include "../Header/Layer.h"
+#include "../Header/GameObject.h"
+#include "../Header/Collider.h"
 
 // class ObjectTree
 ObjectTree::ObjectTree() : pCell(nullptr), pCol(nullptr), pPre(nullptr), pNext(nullptr)
@@ -133,16 +136,24 @@ bool SpaceDivision::GetCollisionList(DWORD Elem, vector<Collider*>& ColVect, lis
 	while (pOT1 != false)
 	{
 		ObjectTree* pOT2 = pOT1->pNext;
-		while (pOT2 != false) {
-			// 衝突リスト作成
-			ColVect.push_back(pOT1->pCol);
-			ColVect.push_back(pOT2->pCol);
+		while (pOT2 != false) 
+		{
+			if (LayerSetting::Instance().CheckRelationship(pOT1->pCol->GetGameObject()->layer, pOT2->pCol->GetGameObject()->layer))
+			{	// 衝突リスト作成
+				ColVect.push_back(pOT1->pCol);
+				ColVect.push_back(pOT2->pCol);
+			}
+
 			pOT2 = pOT2->pNext;
 		}
 		// ② 衝突スタックとの衝突リスト作成
-		for (it = ColStac.begin(); it != ColStac.end(); it++) {
-			ColVect.push_back(pOT1->pCol);
-			ColVect.push_back(*it);
+		for (it = ColStac.begin(); it != ColStac.end(); it++)
+		{
+			if (LayerSetting::Instance().CheckRelationship(pOT1->pCol->GetGameObject()->layer, (*it)->GetGameObject()->layer))
+			{
+				ColVect.push_back(pOT1->pCol);
+				ColVect.push_back(*it);
+			}
 		}
 		pOT1 = pOT1->pNext;
 	}

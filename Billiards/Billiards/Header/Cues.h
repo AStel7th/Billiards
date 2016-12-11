@@ -1,5 +1,6 @@
 #pragma once
 #include "GameObject.h"
+#include "GameState.h"
 
 class CuesControllerInput;
 class MeshData;
@@ -12,6 +13,9 @@ class CuesController : public GameObject
 {
 private:
 	CuesControllerInput*			pInputComponent;
+	GameObject* whiteBall;
+
+	void ShotPhase(GAME_STATE state);
 public:
 	CuesController();
 	virtual ~CuesController();

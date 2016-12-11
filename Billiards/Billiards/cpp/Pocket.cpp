@@ -10,6 +10,8 @@ Pocket::Pocket(int id,float x, float y, float z) : GameObject(),pCollider(nullpt
 
 	SetTag("Pocket");
 
+	SetLayer("Pocket");
+
 	pPhysicsComponent = NEW PocketPhysics(this);
 
 	pCollider = NEW BoxCollider();
@@ -55,6 +57,9 @@ void PocketPhysics::Update()
 
 void PocketPhysics::OnCollisionEnter(GameObject * other)
 {
-	other->SetActive(false);
-	//Messenger::MovementStop(other);
+	if (other->tag == "Ball")
+		Messenger::SetBallInPocket(other);
+
+	if(other->name != "HandBall")
+		other->SetActive(false);
 }
