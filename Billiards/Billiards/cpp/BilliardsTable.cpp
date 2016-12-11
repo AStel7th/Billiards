@@ -10,8 +10,10 @@ BilliardsTable::BilliardsTable() : GameObject()
 	SetName("Table");
 
 	SetTag("Table");
+
+	SetLayer("Table");
 	//pMesh = ResourceManager::Instance().GetResource("Table", "Resource/billiardsTableCollider.fbx");
-	pMesh = ResourceManager::Instance().GetResource("Table", "Resource/BilliardsTableModel.fbx");
+	ResourceManager::Instance().GetResource(&pMesh, "Table", "Resource/BilliardsTableModel.fbx");
 	//pMesh = ResourceManager::Instance().GetResource("Table", "Resource/goblin2.fbx");
 
 	pPhysicsComponent = NEW BilliardsTablePhysics(this);
@@ -19,13 +21,13 @@ BilliardsTable::BilliardsTable() : GameObject()
 	pGraphicsComponent = NEW BilliardsTableGraphics(this,pMesh);
 	
 	pCollider = NEW MeshCollider();
-	pCollider->Create(this,Mesh,"Resource/billiardsTableCollider.fbx" ,180.0f);
+	pCollider->Create(this,Mesh,"Resource/billiardsTableCollider.fbx" ,140.0f);
 
 	SetWorld();
 
 	for (int i = 0; i < POCKET_COUNT; ++i)
 	{
-		Create<Pocket>(i + 1,-130.0f + (130.0f*(i % 3)),40.0f,-70.0f + (140.0f*(i % 2)));
+		Create<Pocket>(i + 1,-130.0f + (130.0f*(i % 3)),20.0f,-70.0f + (140.0f*(i % 2)));
 	}
 	
 }
