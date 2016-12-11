@@ -558,8 +558,8 @@ XMFLOAT2 FBXLoader::GetUV(FbxMesh* pMesh, int index,MESH* mesh,int polyNum,int i
 		{
 			// ç°âÒÇÕUV1Ç¬ÇµÇ©Ç‚ÇÁÇ»Ç¢
 			// UVÇÃVílîΩì]
-			//vTexcoord = XMFLOAT2((float)abs(1.0f - uv.mData[0]), (float)abs(1.0f - uv.mData[1]));
-			vTexcoord = XMFLOAT2((float)uv.mData[0], (float)1.0f - uv.mData[1]);
+			vTexcoord = XMFLOAT2((float)abs(1.0f - uv.mData[0]), (float)abs(1.0f - uv.mData[1]));
+			//vTexcoord = XMFLOAT2((float)uv.mData[0], (float)1.0f - uv.mData[1]);
 		}
 		else
 			vTexcoord = XMFLOAT2(0, 0);

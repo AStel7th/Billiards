@@ -152,7 +152,7 @@ HRESULT DrawSystem::Init(unsigned int msaaSamples)
 	bd.ByteWidth = sizeof(SHADER_GLOBAL);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	if (FAILED(d3d11.pD3DDevice->CreateBuffer(&bd, NULL, &pcBuffer0)))
+	if (FAILED(d3d11.pD3DDevice->CreateBuffer(&bd, nullptr, &pcBuffer0)))
 	{
 		return E_FAIL;
 	}
@@ -162,7 +162,7 @@ HRESULT DrawSystem::Init(unsigned int msaaSamples)
 	bd.ByteWidth = sizeof(CBMATRIX);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	if (FAILED(d3d11.pD3DDevice->CreateBuffer(&bd, NULL, &pcBuffer1)))
+	if (FAILED(d3d11.pD3DDevice->CreateBuffer(&bd, nullptr, &pcBuffer1)))
 	{
 		return E_FAIL;
 	}
@@ -172,7 +172,7 @@ HRESULT DrawSystem::Init(unsigned int msaaSamples)
 	bd.ByteWidth = sizeof(CBMATRIX_INSTANCING);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	if (FAILED(d3d11.pD3DDevice->CreateBuffer(&bd, NULL, &pcBufferInstance)))
+	if (FAILED(d3d11.pD3DDevice->CreateBuffer(&bd, nullptr, &pcBufferInstance)))
 	{
 		return E_FAIL;
 	}
@@ -182,7 +182,7 @@ HRESULT DrawSystem::Init(unsigned int msaaSamples)
 	bd.ByteWidth = sizeof(SHADER_GLOBAL_BONES);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	if (FAILED(d3d11.pD3DDevice->CreateBuffer(&bd, NULL, &pcBoneBuffer)))
+	if (FAILED(d3d11.pD3DDevice->CreateBuffer(&bd, nullptr, &pcBoneBuffer)))
 	{
 		return E_FAIL;
 	}
@@ -198,7 +198,7 @@ HRESULT DrawSystem::Init(unsigned int msaaSamples)
 	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	bd.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 	bd.StructureByteStride = stride;
-	if (FAILED(d3d11.pD3DDevice->CreateBuffer(&bd, NULL, &pTransformStructuredBuffer)))
+	if (FAILED(d3d11.pD3DDevice->CreateBuffer(&bd, nullptr, &pTransformStructuredBuffer)))
 		return E_FAIL;
 
 	// Create ShaderResourceView
@@ -260,7 +260,7 @@ bool DrawSystem::Draw()
 	{
 		SHADER_GLOBAL sg;
 		sg.lightDir = XMFLOAT4(100.0f, 100.0f, 100.0f, 0.0f);
-		sg.eye = XMFLOAT4(view._41, view._42, view._43, 0);
+		sg.eye = XMFLOAT4(Camera::Instance().view._41, Camera::Instance().view._42, Camera::Instance().view._43, 0);
 		memcpy_s(pData.pData, pData.RowPitch, (void*)&sg, sizeof(SHADER_GLOBAL));
 		d3d11.pD3DDeviceContext->Unmap(pcBuffer0.Get(), 0);
 	}
@@ -275,19 +275,22 @@ bool DrawSystem::Draw()
 
 		if (refCnt > 1)
 		{
-			isAnim = ResourceManager::Instance().GetResource((*it).first)->isAnimation;
+			MeshData* pMesh = nullptr;
+			ResourceManager::Instance().GetResource(&pMesh, (*it).first);
+			isAnim = pMesh->isAnimation;
+
 			if (isAnim)
 			{
-				d3d11.pD3DDeviceContext->VSSetShader(pvsFBXAnimInstancing->GetShader(), NULL, 0);
+				d3d11.pD3DDeviceContext->VSSetShader(pvsFBXAnimInstancing->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBufferInstance.GetAddressOf());
-				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), NULL, 0);
+				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutAnimationInstance.Get());
 			}
 			else
 			{
-				d3d11.pD3DDeviceContext->VSSetShader(pvsFBXInstancing->GetShader(), NULL, 0);
+				d3d11.pD3DDeviceContext->VSSetShader(pvsFBXInstancing->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBufferInstance.GetAddressOf());
-				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), NULL, 0);
+				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutStaticMeshInstance.Get());
 			}
 
@@ -295,19 +298,21 @@ bool DrawSystem::Draw()
 		}
 		else
 		{
-			isAnim = ResourceManager::Instance().GetResource((*it).first)->isAnimation;
+			MeshData* pMesh = nullptr;
+			ResourceManager::Instance().GetResource(&pMesh, (*it).first);
+			isAnim = pMesh->isAnimation;
 			if (isAnim)
 			{
-				d3d11.pD3DDeviceContext->VSSetShader(pvsFBXAnimation->GetShader(), NULL, 0);
+				d3d11.pD3DDeviceContext->VSSetShader(pvsFBXAnimation->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBuffer1.GetAddressOf());
-				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), NULL, 0);
+				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutAnimation.Get());
 			}
 			else
 			{
-				d3d11.pD3DDeviceContext->VSSetShader(pvsFBX->GetShader(), NULL, 0);
+				d3d11.pD3DDeviceContext->VSSetShader(pvsFBX->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBuffer1.GetAddressOf());
-				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), NULL, 0);
+				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutStaticMesh.Get());
 			}
 
@@ -320,8 +325,8 @@ bool DrawSystem::Draw()
 
 	Sprite::DrawAll();
 
-	d3d11.pD3DDeviceContext->VSSetShader(NULL, NULL, 0);
-	d3d11.pD3DDeviceContext->PSSetShader(NULL, NULL, 0);
+	d3d11.pD3DDeviceContext->VSSetShader(nullptr, nullptr, 0);
+	d3d11.pD3DDeviceContext->PSSetShader(nullptr, nullptr, 0);
 
 	d3d11.Present(1, 0);
 
@@ -349,14 +354,14 @@ void DrawSystem::Render(GraphicsComponent* pGC,bool isAnim)
 		CBMATRIX*	cbFBX = (CBMATRIX*)MappedResource.pData;
 
 		XMMATRIX _world = XMLoadFloat4x4(&pGC->pGameObject->worldMat);
-		XMMATRIX _view = XMLoadFloat4x4(&view);
-		XMMATRIX _proj = XMLoadFloat4x4(&proj);
+		XMMATRIX _view = XMLoadFloat4x4(&Camera::Instance().view);
+		XMMATRIX _proj = XMLoadFloat4x4(&Camera::Instance().proj);
 		XMMATRIX _local = XMLoadFloat4x4(&mesh.mLocal);
 
 		// ¶ŽèŒn
 		cbFBX->mWorld = pGC->pGameObject->worldMat;
-		cbFBX->mView = view;
-		cbFBX->mProj = proj;
+		cbFBX->mView = Camera::Instance().view;
+		cbFBX->mProj = Camera::Instance().proj;
 
 		XMStoreFloat4x4(&cbFBX->mWVP, XMMatrixTranspose(_local*_world*_view*_proj));
 
@@ -414,7 +419,7 @@ void DrawSystem::Render(GraphicsComponent* pGC,bool isAnim)
 			d3d11.pD3DDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 			if (material.pMaterialCb)
-				d3d11.pD3DDeviceContext->UpdateSubresource(material.pMaterialCb.Get(), 0, NULL, &material.materialConstantData, 0, 0);
+				d3d11.pD3DDeviceContext->UpdateSubresource(material.pMaterialCb.Get(), 0, nullptr, &material.materialConstantData, 0, 0);
 
 			d3d11.pD3DDeviceContext->VSSetConstantBuffers(3, 1, material.pMaterialCb.GetAddressOf());
 			d3d11.pD3DDeviceContext->PSSetConstantBuffers(3, 1, material.pMaterialCb.GetAddressOf());
@@ -451,13 +456,13 @@ void DrawSystem::RenderInstancing(vector<GraphicsComponent*>& pGClist, int refCn
 
 		CBMATRIX_INSTANCING*	cbFBX = (CBMATRIX_INSTANCING*)MappedResource.pData;
 
-		XMMATRIX _view	= XMLoadFloat4x4(&view);
-		XMMATRIX _proj	= XMLoadFloat4x4(&proj);
+		XMMATRIX _view	= XMLoadFloat4x4(&Camera::Instance().view);
+		XMMATRIX _proj	= XMLoadFloat4x4(&Camera::Instance().proj);
 		XMMATRIX _local = XMLoadFloat4x4(&mesh.mLocal);
 
 		// ¶ŽèŒn
-		cbFBX->mView  = view;
-		cbFBX->mProj  = proj;
+		cbFBX->mView  = Camera::Instance().view;
+		cbFBX->mProj  = Camera::Instance().proj;
 		cbFBX->mLocal = mesh.mLocal;
 
 		d3d11.pD3DDeviceContext->Unmap(pcBufferInstance.Get(), 0);
@@ -520,7 +525,7 @@ void DrawSystem::RenderInstancing(vector<GraphicsComponent*>& pGClist, int refCn
 			d3d11.pD3DDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 			if (material.pMaterialCb)
-				d3d11.pD3DDeviceContext->UpdateSubresource(material.pMaterialCb.Get(), 0, NULL, &material.materialConstantData, 0, 0);
+				d3d11.pD3DDeviceContext->UpdateSubresource(material.pMaterialCb.Get(), 0, nullptr, &material.materialConstantData, 0, 0);
 
 			d3d11.pD3DDeviceContext->VSSetConstantBuffers(3, 1, material.pMaterialCb.GetAddressOf());
 			d3d11.pD3DDeviceContext->PSSetConstantBuffers(3, 1, material.pMaterialCb.GetAddressOf());
@@ -576,14 +581,4 @@ void DrawSystem::AddDrawList(DRAW_PRIOLITY priolity, const string& tag, Graphics
 			}
 		}
 	}
-}
-
-void DrawSystem::SetView(XMFLOAT4X4 * v)
-{
-	view = *v;
-}
-
-void DrawSystem::SetProjection(XMFLOAT4X4 * p)
-{
-	proj = *p;
 }

@@ -134,7 +134,4 @@ public:
 	virtual bool Draw();
 
 	void AddDrawList(DRAW_PRIOLITY priolity, const string& tag,GraphicsComponent* pGC);
-
-	void SetView(XMFLOAT4X4* v);
-	void SetProjection(XMFLOAT4X4* p);
 };
