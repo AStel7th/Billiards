@@ -70,10 +70,13 @@ protected:
 	void SetTag(const string& t);
 
 	void SetName(const string& n);
+
+	void SetLayer(const string& l);
 	
 public:
 	string name;
 	string tag;
+	string layer;
 	XMFLOAT3 pos;
 	XMFLOAT3 rot;
 	XMFLOAT3 scale;

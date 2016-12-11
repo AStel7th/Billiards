@@ -60,6 +60,7 @@ GameObject::GameObject() :
 {
 	name = "";
 	tag = "";
+	layer = "None";
 	GameObject::_Register_(this);
 }
 
@@ -125,6 +126,11 @@ void GameObject::SetTag(const string & t)
 void GameObject::SetName(const string & n)
 {
 	name = n;
+}
+
+void GameObject::SetLayer(const string & l)
+{
+	layer = l;
 }
 
 void GameObject::SetActive(bool flg)
