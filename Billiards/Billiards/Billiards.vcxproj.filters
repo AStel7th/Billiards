@@ -19,6 +19,12 @@
     <Filter Include="ヘッダー ファイル\FBX">
       <UniqueIdentifier>{f867a0d5-dbf2-4317-9773-1309b0a21fa2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\WAVE">
+      <UniqueIdentifier>{61a36d63-6c85-4aa4-b762-c43a79f2b89e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\WAVE">
+      <UniqueIdentifier>{66f11e09-f616-4e00-9317-9be3f831c12b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cpp\Direct3D11.cpp">
@@ -49,9 +55,6 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="cpp\FBXLoader.cpp">
-      <Filter>ソース ファイル\FBX</Filter>
-    </ClCompile>
-    <ClCompile Include="cpp\FBXRendererDX11.cpp">
       <Filter>ソース ファイル\FBX</Filter>
     </ClCompile>
     <ClCompile Include="cpp\BilliardsTable.cpp">
@@ -103,6 +106,21 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="cpp\Messenger.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="cpp\Layer.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="cpp\MainCamera.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="cpp\HandBall.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="cpp\WaveFileLoader.cpp">
+      <Filter>ソース ファイル\WAVE</Filter>
+    </ClCompile>
+    <ClCompile Include="cpp\AudioSystem.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -159,9 +177,6 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Header\FBXLoader.h">
-      <Filter>ヘッダー ファイル\FBX</Filter>
-    </ClInclude>
-    <ClInclude Include="Header\FBXRendererDX11.h">
       <Filter>ヘッダー ファイル\FBX</Filter>
     </ClInclude>
     <ClInclude Include="Header\BilliardsTable.h">
@@ -225,6 +240,24 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Header\Messenger.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Layer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\GameState.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\MainCamera.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\HandBall.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\WaveFileLoader.h">
+      <Filter>ヘッダー ファイル\WAVE</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\AudioSystem.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

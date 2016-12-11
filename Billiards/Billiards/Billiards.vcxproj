@@ -158,6 +158,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cpp\AudioSystem.cpp" />
     <ClCompile Include="cpp\Ball.cpp" />
     <ClCompile Include="cpp\BallComponents.cpp" />
     <ClCompile Include="cpp\BilliardsTable.cpp" />
@@ -167,15 +168,17 @@
     <ClCompile Include="cpp\Cues.cpp" />
     <ClCompile Include="cpp\CuesComponents.cpp" />
     <ClCompile Include="cpp\FBXLoader.cpp" />
-    <ClCompile Include="cpp\FBXRendererDX11.cpp" />
     <ClCompile Include="cpp\Game.cpp" />
     <ClCompile Include="cpp\Direct3D11.cpp" />
     <ClCompile Include="cpp\DrawFPS.cpp" />
     <ClCompile Include="cpp\DrawSystem.cpp" />
     <ClCompile Include="cpp\GameObject.cpp" />
     <ClCompile Include="cpp\GraphicsPipeline.cpp" />
+    <ClCompile Include="cpp\HandBall.cpp" />
     <ClCompile Include="cpp\InputDeviceManager.cpp" />
+    <ClCompile Include="cpp\Layer.cpp" />
     <ClCompile Include="cpp\main.cpp" />
+    <ClCompile Include="cpp\MainCamera.cpp" />
     <ClCompile Include="cpp\MaterialData.cpp" />
     <ClCompile Include="cpp\MeshData.cpp" />
     <ClCompile Include="cpp\Messenger.cpp" />
@@ -186,8 +189,10 @@
     <ClCompile Include="cpp\Sprite.cpp" />
     <ClCompile Include="cpp\TimeControl.cpp" />
     <ClCompile Include="cpp\DebugFont.cpp" />
+    <ClCompile Include="cpp\WaveFileLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Header\AudioSystem.h" />
     <ClInclude Include="Header\Ball.h" />
     <ClInclude Include="Header\BallComponents.h" />
     <ClInclude Include="Header\BilliardsTable.h" />
@@ -199,10 +204,11 @@
     <ClInclude Include="Header\Component.h" />
     <ClInclude Include="Header\CuesComponents.h" />
     <ClInclude Include="Header\Event.h" />
+    <ClInclude Include="Header\GameState.h" />
+    <ClInclude Include="Header\HandBall.h" />
     <ClInclude Include="Header\InputDeviceManager.h" />
     <ClInclude Include="Header\FBXInitialize.h" />
     <ClInclude Include="Header\FBXLoader.h" />
-    <ClInclude Include="Header\FBXRendererDX11.h" />
     <ClInclude Include="Header\Game.h" />
     <ClInclude Include="Header\Direct3D11.h" />
     <ClInclude Include="Header\DrawFPS.h" />
@@ -212,6 +218,8 @@
     <ClInclude Include="Header\func.h" />
     <ClInclude Include="Header\GameObject.h" />
     <ClInclude Include="Header\GraphicsPipeline.h" />
+    <ClInclude Include="Header\Layer.h" />
+    <ClInclude Include="Header\MainCamera.h" />
     <ClInclude Include="Header\MaterialData.h" />
     <ClInclude Include="Header\MeshData.h" />
     <ClInclude Include="Header\Cues.h" />
@@ -224,6 +232,7 @@
     <ClInclude Include="Header\Sprite.h" />
     <ClInclude Include="Header\TimeControl.h" />
     <ClInclude Include="Header\DebugFont.h" />
+    <ClInclude Include="Header\WaveFileLoader.h" />
     <ClInclude Include="HLSL\DebugFont_PS_Main.h" />
     <ClInclude Include="HLSL\DebugFont_VS_Main.h" />
     <ClInclude Include="HLSL\SRViewRenderer_PS_Main.h" />
