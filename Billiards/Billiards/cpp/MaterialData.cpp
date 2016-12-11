@@ -1,32 +1,6 @@
 #include "../Header/MaterialData.h"
 #include "../Header/Direct3D11.h"
 
-//拡張子取得関数
-inline string GetExtension(const string &path)
-{
-	string ext;
-	size_t pos1 = path.rfind('.');
-	if (pos1 != string::npos) {
-		ext = path.substr(pos1 + 1, path.size() - pos1);
-		string::iterator itr = ext.begin();
-		while (itr != ext.end()) {
-			*itr = tolower(*itr);
-			itr++;
-		}
-		itr = ext.end() - 1;
-		while (itr != ext.begin()) {    // パスの最後に\0やスペースがあったときの対策
-			if (*itr == 0 || *itr == 32) {
-				ext.erase(itr--);
-			}
-			else {
-				itr--;
-			}
-		}
-	}
-
-	return ext;
-}
-
 MaterialData::MaterialData()
 {
 	ambient = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);

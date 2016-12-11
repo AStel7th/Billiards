@@ -5,6 +5,7 @@
 #include <math.h>
 //#define _XM_NO_INTRINSICS_
 #include <directxmath.h>
+#include <string>
 
 using namespace DirectX;
 using namespace std;
@@ -113,4 +114,40 @@ inline XMFLOAT3 MatrixTransformScale(XMFLOAT4X4* mat)
 	scale.z = mat->_33;
 
 	return scale;
+}
+
+//拡張子取得関数
+static string GetExtension(const string &path)
+{
+	string ext;
+	size_t pos1 = path.rfind('.');
+	if (pos1 != string::npos) {
+		ext = path.substr(pos1 + 1, path.size() - pos1);
+		string::iterator itr = ext.begin();
+		while (itr != ext.end()) {
+			*itr = tolower(*itr);
+			itr++;
+		}
+		itr = ext.end() - 1;
+		while (itr != ext.begin()) {    // パスの最後に\0やスペースがあったときの対策
+			if (*itr == 0 || *itr == 32) {
+				ext.erase(itr--);
+			}
+			else {
+				itr--;
+			}
+		}
+	}
+
+	return ext;
+}
+
+static LPWSTR StringToWideChar(string temp)
+{
+	int n;
+	n = MultiByteToWideChar(CP_ACP, 0, temp.c_str(), temp.size(), nullptr, 0);
+	LPWSTR p = NEW WCHAR[n + 1];
+	n = MultiByteToWideChar(CP_ACP, 0, temp.c_str(), temp.size(), p, n);
+	*(p + n) = '\0';
+	return p;
 }
