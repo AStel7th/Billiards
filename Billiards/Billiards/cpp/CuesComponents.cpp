@@ -3,16 +3,13 @@
 #include "../Header/DrawSystem.h"
 #include "../Header/MeshData.h"
 #include "../Header/InputDeviceManager.h"
+#include "../Header/Messenger.h"
 
-CuesControllerInput::CuesControllerInput(GameObject * pObj) : InputComponent(), whiteBall(nullptr)
+CuesControllerInput::CuesControllerInput(GameObject * pObj) : InputComponent()
 {
 	id.push_back(typeid(this));
 	pGameObject = pObj;
 	pGameObject->AddComponent(this);
-
-	whiteBall = GameObject::All::GameObjectFindWithName("Ball0");
-
-	pGameObject->pos = whiteBall->pos;
 }
 
 CuesControllerInput::~CuesControllerInput()
@@ -21,8 +18,6 @@ CuesControllerInput::~CuesControllerInput()
 
 void CuesControllerInput::Update()
 {
-	pGameObject->pos = whiteBall->pos;
-
 	if(!InputDeviceManager::Instance().GetMouseButtonDown(0))
 		pGameObject->rot.y -= RADIAN(InputDeviceManager::Instance().GetMouseState().x) / 10.0f;
 
@@ -45,13 +40,16 @@ CuesInput::CuesInput(GameObject * pObj) : InputComponent(), movePos(10.0f), pPhy
 	XMStoreFloat3(&pGameObject->pos, _pos);
 	XMStoreFloat3(&pPhysics->prePos, _pos);*/
 
-	pGameObject->pos.x = 10.0f;
+	pGameObject->pos.x = 30.0f;
 	pGameObject->rot.x = RADIAN(-85.0f);
 	pGameObject->rot.y = RADIAN(-90.0f);
+
+	Messenger::OnGamePhase.Add(*this, &CuesInput::ShotPhase);
 }
 
 CuesInput::~CuesInput()
 {
+	Messenger::OnGamePhase.Remove(*this, &CuesInput::ShotPhase);
 }
 
 void CuesInput::Update()
@@ -71,12 +69,25 @@ void CuesInput::Update()
 	pPhysics->velocity.y = pGameObject->GetWorldPos().y - worldPrePos.y;
 	pPhysics->velocity.z = pGameObject->GetWorldPos().z - worldPrePos.z;
 
-	TCHAR s[256];
+	/*TCHAR s[256];
 
 	_stprintf_s(s, _T("pos:%f %f %f \n"), pPhysics->velocity.x, pPhysics->velocity.y, pPhysics->velocity.z);
 
-	OutputDebugString(s);
+	OutputDebugString(s);*/
 }
+
+void CuesInput::ShotPhase(GAME_STATE state)
+{
+	if (state == GAME_STATE::Shot)
+	{
+		pGameObject->pos.x = 30.0f;
+		pGameObject->rot.x = RADIAN(-85.0f);
+		pGameObject->rot.y = RADIAN(-90.0f);
+
+		pGameObject->SetWorld();
+	}
+}
+
 
 CuesPhysics::CuesPhysics(GameObject * pObj) : PhysicsComponent()
 {
@@ -100,7 +111,6 @@ void CuesPhysics::OnCollisionEnter(GameObject* other)
 {
 	if(other->tag != "Table")
 		pGameObject->pParent->SetActive(false);
-	//pGameObject->Destroy();
 }
 
 CuesGraphics::CuesGraphics(GameObject * pObj, MeshData * mesh) : GraphicsComponent()

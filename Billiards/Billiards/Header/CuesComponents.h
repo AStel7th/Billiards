@@ -1,12 +1,13 @@
 #pragma once
 #include "Component.h"
+#include "GameState.h"
 
 class CuesPhysics;
 
 class CuesControllerInput : public InputComponent
 {
 private:
-	GameObject* whiteBall;
+	
 public:
 	CuesControllerInput(GameObject* pObj);
 
@@ -20,6 +21,8 @@ class CuesInput : public InputComponent
 private:
 	CuesPhysics* pPhysics;
 	float movePos;
+
+	void ShotPhase(GAME_STATE state);
 public:
 	CuesInput(GameObject* pObj);
 
