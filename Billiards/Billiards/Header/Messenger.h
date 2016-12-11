@@ -1,14 +1,8 @@
 #pragma once
 #include "Event.h"
+#include "GameState.h"
 
 class GameObject;
-
-
-enum struct GAME_STATE
-{
-	DecideOrder,
-	BallMovement,
-};
 
 class Messenger
 {
@@ -44,6 +38,26 @@ public:
 		if (BallMovement.GetEventCount() != 0)
 		{
 			BallMovement(pBall,flg);
+		}
+	}
+
+	static Event<void(GameObject*)> BallInPocket;
+
+	static void SetBallInPocket(GameObject* pBall)
+	{
+		if (BallInPocket.GetEventCount() != 0)
+		{
+			BallInPocket(pBall);
+		}
+	}
+
+	static Event<void()> isBallSetDone;
+
+	static void BallSetDone()
+	{
+		if (isBallSetDone.GetEventCount() != 0)
+		{
+			isBallSetDone();
 		}
 	}
 };
