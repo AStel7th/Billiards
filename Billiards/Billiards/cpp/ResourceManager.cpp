@@ -59,7 +59,11 @@ WaveFileLoader * ResourceManager::GetWaveData(const string & name, const char * 
 		if (filename == nullptr)
 			return nullptr;
 
-		waveFileList[name].Open(StringToWideChar(filename), nullptr, WAVEFILE_READ);
+		LPWSTR str;
+		StringToWideChar(&str, filename);
+		waveFileList[name].Open(str, nullptr, WAVEFILE_READ);
+
+		SAFE_DELETE(str);
 
 		return &waveFileList[name];
 	}

@@ -32,6 +32,7 @@ BallPhysics::BallPhysics(GameObject* pObj) : PhysicsComponent(), isMove(false)
 
 BallPhysics::~BallPhysics()
 {
+	SAFE_DELETE(hitSE);
 }
 
 void BallPhysics::Update()

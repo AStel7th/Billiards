@@ -19,7 +19,7 @@ public:
 	{
 		static AudioSystem inst;
 		return inst;
- 	}
+	}
 
 	HRESULT Create();
 

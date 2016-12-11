@@ -3,7 +3,7 @@
 
 AudioSystem::AudioSystem() : pXAudio2(nullptr), pMasteringVoice(nullptr)
 {
-	
+
 }
 
 AudioSystem::~AudioSystem()

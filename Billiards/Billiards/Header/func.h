@@ -55,8 +55,8 @@ inline void MSGBOX(LPCTSTR windowname, LPCTSTR val)
 }
 
 template <typename T>
-inline int ARRAY_NUM(T *&p){
-	if (p){
+inline int ARRAY_NUM(T *&p) {
+	if (p) {
 		return sizeof(p) / sizeof(p[0]);
 	}
 	else
@@ -66,7 +66,7 @@ inline int ARRAY_NUM(T *&p){
 }
 
 template <typename T>
-inline int XOR_SWAP(T *a, T *b){
+inline int XOR_SWAP(T *a, T *b) {
 	*a ^= *b;
 	*b ^= *a;
 	*a ^= *b;
@@ -142,12 +142,12 @@ static string GetExtension(const string &path)
 	return ext;
 }
 
-static LPWSTR StringToWideChar(string temp)
+static LPWSTR* StringToWideChar(LPWSTR* str, string temp)
 {
 	int n;
 	n = MultiByteToWideChar(CP_ACP, 0, temp.c_str(), temp.size(), nullptr, 0);
-	LPWSTR p = NEW WCHAR[n + 1];
-	n = MultiByteToWideChar(CP_ACP, 0, temp.c_str(), temp.size(), p, n);
-	*(p + n) = '\0';
-	return p;
+	*str = NEW WCHAR[n + 1];
+	n = MultiByteToWideChar(CP_ACP, 0, temp.c_str(), temp.size(), *str, n);
+	*(*str + n) = '\0';
+	return str;
 }
