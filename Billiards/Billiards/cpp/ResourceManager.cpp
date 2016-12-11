@@ -1,6 +1,6 @@
 #include "../Header/ResourceManager.h"
-#include "../Header/FBXRendererDX11.h"
 #include "../Header/FBXLoader.h"
+#include "../Header/WaveFileLoader.h"
 
 ResourceManager::ResourceManager()
 {
@@ -9,11 +9,8 @@ ResourceManager::ResourceManager()
 
 ResourceManager::~ResourceManager()
 {
-	for each (pair<string, FBXLoader*> var in modelList)
-	{
-		SAFE_DELETE(var.second);
-	}
 	modelList.clear();
+	waveFileList.clear();
 }
 
 bool ResourceManager::Init()
@@ -21,25 +18,51 @@ bool ResourceManager::Init()
 	return true;
 }
 
-MeshData* ResourceManager::GetResource(const string & name, const char* filename)
+void ResourceManager::GetResource(MeshData** data, const string & name, const char* filename)
+{
+	*data = GetModelData(name, filename);
+}
+
+void ResourceManager::GetResource(WaveFileLoader** data, const string & name, const char* filename)
+{
+	*data = GetWaveData(name, filename);
+}
+
+
+MeshData * ResourceManager::GetModelData(const string & name, const char * filename)
 {
 	// オブジェクトIDチェック
-	map<string, FBXLoader*>::iterator modelName = modelList.find(name);
+	map<string, FBXLoader>::iterator modelName = modelList.find(name);
 
 	// IDがなければ追加
 	if (modelName == modelList.end())
 	{
 		if (filename == nullptr)
 			return nullptr;
-		
-		FBXLoader* modelData = NEW FBXLoader();
-		modelData->LoadFBX(filename,name);
 
-		// 新しいID内要素マップを作成
-		modelList.insert(make_pair(name, modelData));
+		modelList[name].LoadFBX(filename, name);
 
-		return modelList[name]->GetMeshData();
+		return modelList[name].GetMeshData();
 	}
-	
-	return modelName->second->GetMeshData();
+
+	return modelName->second.GetMeshData();
+}
+
+WaveFileLoader * ResourceManager::GetWaveData(const string & name, const char * filename)
+{
+	// オブジェクトIDチェック
+	map<string, WaveFileLoader>::iterator waveFileName = waveFileList.find(name);
+
+	// IDがなければ追加
+	if (waveFileName == waveFileList.end())
+	{
+		if (filename == nullptr)
+			return nullptr;
+
+		waveFileList[name].Open(StringToWideChar(filename), nullptr, WAVEFILE_READ);
+
+		return &waveFileList[name];
+	}
+
+	return &waveFileName->second;
 }
