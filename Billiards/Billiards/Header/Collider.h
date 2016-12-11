@@ -4,7 +4,7 @@
 #include <DirectXMath.h>
 
 const float SPHERE_REPULSION = 0.85f;
-const float WALL_REPULSION = 0.82f;		// ãÖÇ∆ï«ÇÃîΩî≠åWêî
+const float WALL_REPULSION = 0.75f;		// ãÖÇ∆ï«ÇÃîΩî≠åWêî
 
 using namespace std;
 using namespace DirectX;
@@ -49,6 +49,7 @@ protected:
 	GameObject*			pObject;
 	ColliderType		colType;
 	vector<string>		targetTagList;
+	PhysicsComponent*	pPhysics;
 	//ÉVÉXÉeÉÄÇ÷ÇÃìoò^
 	static inline void _Register_(Collider* pObj);
 
@@ -64,6 +65,8 @@ public:
 	virtual void Update() = 0;
 
 	GameObject* GetGameObject();
+
+	PhysicsComponent* GetPhysics();
 
 	void AddTargetTag(const string& t);
 	
@@ -85,7 +88,6 @@ public:
 class SphereCollider : public Collider
 {
 private:
-	
 public:
 	float radius;
 

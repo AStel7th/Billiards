@@ -30,10 +30,9 @@ void GetRefrectVelo(XMVECTOR *pOut, XMVECTOR &N, XMVECTOR &V, float e)
 // 壁との反射後の位置を算出
 void GetRelectedPos(float Res_time, Collider &c, XMVECTOR& RefV)
 {
-	PhysicsComponent* pPC = GetComponent<PhysicsComponent>(c.GetGameObject());
 	XMVECTOR p = XMLoadFloat3(&c.GetGameObject()->pos);
-	XMVECTOR pre_p = XMLoadFloat3(&pPC->prePos);
-	XMVECTOR v = XMLoadFloat3(&pPC->velocity);
+	XMVECTOR pre_p = XMLoadFloat3(&c.GetPhysics()->prePos);
+	XMVECTOR v = XMLoadFloat3(&c.GetPhysics()->velocity);
 
 	// 衝突位置
 	// 0.99は壁にめり込まないための補正
@@ -44,7 +43,7 @@ void GetRelectedPos(float Res_time, Collider &c, XMVECTOR& RefV)
 	p += v * Res_time;
 
 	XMStoreFloat3(&c.GetGameObject()->pos, p);
-	XMStoreFloat3(&pPC->velocity, v);
+	XMStoreFloat3(&c.GetPhysics()->velocity, v);
 }
 
 void CollisionOfSpheres(SphereCollider* sCol1, SphereCollider* sCol2 )
@@ -53,23 +52,20 @@ void CollisionOfSpheres(SphereCollider* sCol1, SphereCollider* sCol2 )
 	float t = 0;
 	XMVECTOR C1ColPos, C2ColPos, C1Velo, C2Velo;
 
-	PhysicsComponent* sCol1PC = GetComponent<PhysicsComponent>(sCol1->GetGameObject());
-	PhysicsComponent* sCol2PC = GetComponent<PhysicsComponent>(sCol2->GetGameObject());
-
-	XMVECTOR sCol1PrePos = XMLoadFloat3(&sCol1PC->prePos);
+	XMVECTOR sCol1PrePos = XMLoadFloat3(&sCol1->GetPhysics()->prePos);
 	XMVECTOR sCol1Pos = XMLoadFloat3(&sCol1->GetGameObject()->pos);
-	if (sCol1PC->pGameObject->pParent != nullptr)
+	if (sCol1->GetGameObject()->pParent != nullptr)
 	{
-		XMMATRIX parentWorld = XMLoadFloat4x4(&sCol1PC->pGameObject->pParent->worldMat);
+		XMMATRIX parentWorld = XMLoadFloat4x4(&sCol1->GetGameObject()->pParent->worldMat);
 		ConvertToParentSpace(sCol1Pos, parentWorld);
 		ConvertToParentSpace(sCol1PrePos, parentWorld);
 	}
 
-	XMVECTOR sCol2PrePos = XMLoadFloat3(&sCol2PC->prePos);
+	XMVECTOR sCol2PrePos = XMLoadFloat3(&sCol2->GetPhysics()->prePos);
 	XMVECTOR sCol2Pos = XMLoadFloat3(&sCol2->GetGameObject()->pos);
-	if (sCol2PC->pGameObject->pParent != nullptr)
+	if (sCol2->GetGameObject()->pParent != nullptr)
 	{
-		XMMATRIX parentWorld = XMLoadFloat4x4(&sCol2PC->pGameObject->pParent->worldMat);
+		XMMATRIX parentWorld = XMLoadFloat4x4(&sCol2->GetGameObject()->pParent->worldMat);
 		ConvertToParentSpace(sCol2Pos, parentWorld);
 		ConvertToParentSpace(sCol2PrePos, parentWorld);
 	}
@@ -90,10 +86,10 @@ void CollisionOfSpheres(SphereCollider* sCol1, SphereCollider* sCol2 )
 	sCol1PrePos = C1ColPos;
 	sCol2PrePos = C2ColPos;
 
-	XMVECTOR sCol1Velo = XMLoadFloat3(&sCol1PC->velocity);
-	XMVECTOR sCol2Velo = XMLoadFloat3(&sCol2PC->velocity);
-	float sCol1Mass = sCol1PC->mass;
-	float sCol2Mass = sCol2PC->mass;
+	XMVECTOR sCol1Velo = XMLoadFloat3(&sCol1->GetPhysics()->velocity);
+	XMVECTOR sCol2Velo = XMLoadFloat3(&sCol2->GetPhysics()->velocity);
+	float sCol1Mass = sCol1->GetPhysics()->mass;
+	float sCol2Mass = sCol2->GetPhysics()->mass;
 
 
 	// 衝突後の速度を算出
@@ -113,29 +109,29 @@ void CollisionOfSpheres(SphereCollider* sCol1, SphereCollider* sCol2 )
 	sCol1Pos += C1Velo;
 	sCol2Pos += C2Velo;
 	
-	if (sCol1PC->pGameObject->pParent != nullptr)
+	if (sCol1->GetGameObject()->pParent != nullptr)
 	{
-		XMMATRIX parentWorld = XMLoadFloat4x4(&sCol1PC->pGameObject->pParent->worldMat);
+		XMMATRIX parentWorld = XMLoadFloat4x4(&sCol1->GetGameObject()->pParent->worldMat);
 		ConvertToLocalSpace(sCol1Pos, parentWorld);
 		ConvertToLocalSpace(sCol1PrePos, parentWorld);
 	}
 
-	if (sCol2PC->pGameObject->pParent != nullptr)
+	if (sCol2->GetGameObject()->pParent != nullptr)
 	{
-		XMMATRIX parentWorld = XMLoadFloat4x4(&sCol2PC->pGameObject->pParent->worldMat);
+		XMMATRIX parentWorld = XMLoadFloat4x4(&sCol2->GetGameObject()->pParent->worldMat);
 		ConvertToLocalSpace(sCol2Pos, parentWorld);
 		ConvertToLocalSpace(sCol2PrePos, parentWorld);
 	}
 
 	XMStoreFloat3(&sCol1->GetGameObject()->pos, sCol1Pos);
 	XMStoreFloat3(&sCol2->GetGameObject()->pos, sCol2Pos);
-	XMStoreFloat3(&sCol1PC->prePos, sCol1PrePos);
-	XMStoreFloat3(&sCol2PC->prePos, sCol2PrePos);
-	XMStoreFloat3(&sCol1PC->velocity, sCol1Velo);
-	XMStoreFloat3(&sCol2PC->velocity, sCol2Velo);
+	XMStoreFloat3(&sCol1->GetPhysics()->prePos, sCol1PrePos);
+	XMStoreFloat3(&sCol2->GetPhysics()->prePos, sCol2PrePos);
+	XMStoreFloat3(&sCol1->GetPhysics()->velocity, sCol1Velo);
+	XMStoreFloat3(&sCol2->GetPhysics()->velocity, sCol2Velo);
 
-	sCol1PC->OnCollisionEnter(sCol2->GetGameObject());
-	sCol2PC->OnCollisionEnter(sCol1->GetGameObject());
+	sCol1->GetPhysics()->OnCollisionEnter(sCol2->GetGameObject());
+	sCol2->GetPhysics()->OnCollisionEnter(sCol1->GetGameObject());
 }
 
 void CollisionOfMeshAndSphere(MeshCollider* mCol, SphereCollider* sCol)
@@ -143,19 +139,17 @@ void CollisionOfMeshAndSphere(MeshCollider* mCol, SphereCollider* sCol)
 	//球とメッシュの当たり判定
 	vector<NODE_COLLISION> nodeCol = mCol->GetMesh()->GetMeshData();
 
-	PhysicsComponent* sColPC = GetComponent<PhysicsComponent>(sCol->GetGameObject());
-
-	XMVECTOR sColPrePos = XMLoadFloat3(&sColPC->prePos);
+	XMVECTOR sColPrePos = XMLoadFloat3(&sCol->GetPhysics()->prePos);
 	XMVECTOR sColPos = XMLoadFloat3(&sCol->GetGameObject()->pos);
-	if (sColPC->pGameObject->pParent != nullptr)
+	if (sCol->GetGameObject()->pParent != nullptr)
 	{
-		XMMATRIX parentWorld = XMLoadFloat4x4(&sColPC->pGameObject->pParent->worldMat);
+		XMMATRIX parentWorld = XMLoadFloat4x4(&sCol->GetGameObject()->pParent->worldMat);
 		ConvertToParentSpace(sColPos, parentWorld);
 		ConvertToParentSpace(sColPrePos, parentWorld);
 	}
 
 	XMVECTOR RefV;	// 反射後の速度ベクトル
-	XMVECTOR sColVelo = XMLoadFloat3(&sColPC->velocity);
+	XMVECTOR sColVelo = XMLoadFloat3(&sCol->GetPhysics()->velocity);
 	XMVECTOR ColPos;
 	float t = 0;
 	bool hit = false;
@@ -201,8 +195,8 @@ void CollisionOfMeshAndSphere(MeshCollider* mCol, SphereCollider* sCol)
 
 	if (hit)
 	{
-		GetComponent<PhysicsComponent>(mCol->GetGameObject())->OnCollisionEnter(sCol->GetGameObject());
-		sColPC->OnCollisionEnter(mCol->GetGameObject());
+		mCol->GetPhysics()->OnCollisionEnter(sCol->GetGameObject());
+		sCol->GetPhysics()->OnCollisionEnter(mCol->GetGameObject());
 	}
 }
 
@@ -248,7 +242,7 @@ inline Collider* Collider::_Unregister_(Collider* pCol)
 	return next;
 }
 
-Collider::Collider() : pPrev(nullptr), pNext(nullptr), pObject(nullptr)
+Collider::Collider() : pPrev(nullptr), pNext(nullptr), pObject(nullptr), pPhysics(nullptr)
 {
 
 }
@@ -271,6 +265,11 @@ void Collider::Create(GameObject * pObj, ColliderType type)
 GameObject * Collider::GetGameObject()
 {
 	return pObject;
+}
+
+PhysicsComponent * Collider::GetPhysics()
+{
+	return pPhysics;
 }
 
 void Collider::AddTargetTag(const string & t)
@@ -330,6 +329,8 @@ void SphereCollider::Create(GameObject * pObj, ColliderType type, float r)
 
 	pObjectTree = NEW ObjectTree();
 	pObjectTree->pCol = this;
+
+	pPhysics = GetComponent<PhysicsComponent>(pObject);
 }
 
 void SphereCollider::Update()
@@ -357,21 +358,17 @@ void SphereCollider::isCollision(SphereCollider * other)
 
 void SphereCollider::isCollision(BoxCollider * other)
 {
-
-	PhysicsComponent* otherPC = GetComponent<PhysicsComponent>(other->GetGameObject());
-	PhysicsComponent* myPC = GetComponent<PhysicsComponent>(pObject);
-
 	if (Collision::HitCheckSphereAndAABB(
 		pObject->pos,
 		radius,
-		myPC->velocity,
+		pPhysics->velocity,
 		other->minPos,
 		other->maxPos,
-		otherPC->velocity
+		other->GetPhysics()->velocity
 	))
 	{
-		otherPC->OnCollisionEnter(pObject);
-		myPC->OnCollisionEnter(other->GetGameObject());
+		other->GetPhysics()->OnCollisionEnter(pObject);
+		pPhysics->OnCollisionEnter(other->GetGameObject());
 	}
 	else
 	{
@@ -397,6 +394,8 @@ void BoxCollider::Create(GameObject * pObj, ColliderType type, float s)
 
 	pObjectTree = NEW ObjectTree();
 	pObjectTree->pCol = this;
+
+	pPhysics = GetComponent<PhysicsComponent>(pObject);
 }
 
 void BoxCollider::Update()
@@ -424,20 +423,17 @@ void BoxCollider::CollisionDetection(Collider * pCol)
 
 void BoxCollider::isCollision(SphereCollider * other)
 {
-	PhysicsComponent* otherPC = GetComponent<PhysicsComponent>(other->GetGameObject());
-	PhysicsComponent* myPC = GetComponent<PhysicsComponent>(pObject);
-
 	if (Collision::HitCheckSphereAndAABB(
 		other->GetGameObject()->pos,
 		other->radius,
-		otherPC->velocity,
+		other->GetPhysics()->velocity,
 		minPos,
 		maxPos,
-		myPC->velocity
+		GetPhysics()->velocity
 	))
 	{
-		otherPC->OnCollisionEnter(pObject);
-		myPC->OnCollisionEnter(other->GetGameObject());
+		other->GetPhysics()->OnCollisionEnter(pObject);
+		GetPhysics()->OnCollisionEnter(other->GetGameObject());
 	}
 	else
 	{
@@ -478,6 +474,8 @@ void MeshCollider::Create(GameObject* pObj, ColliderType type, const char* fpath
 
 	pObjectTree = NEW ObjectTree();
 	pObjectTree->pCol = this;
+
+	pPhysics = GetComponent<PhysicsComponent>(pObject);
 }
 
 void MeshCollider::Update()
