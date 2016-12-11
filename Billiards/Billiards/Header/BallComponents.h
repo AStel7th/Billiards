@@ -1,8 +1,13 @@
 #pragma once
 #include "Component.h"
 
+class SoundPlayer;
+
 class BallPhysics : public PhysicsComponent
 {
+private:
+	bool isMove;
+	SoundPlayer* hitSE;
 public:
 	BallPhysics(GameObject* pObj);
 

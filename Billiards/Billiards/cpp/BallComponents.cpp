@@ -1,6 +1,8 @@
 #include "../Header/BallComponents.h"
 #include "../Header/GameObject.h"
 #include "../Header/DrawSystem.h"
+#include "../Header/ResourceManager.h"
+#include "../Header/AudioSystem.h"
 #include "../Header/MeshData.h"
 #include "../Header/MaterialData.h"
 #include "../Header/Messenger.h"
@@ -9,11 +11,17 @@
 
 using namespace std;
 
-BallPhysics::BallPhysics(GameObject* pObj) : PhysicsComponent()
+BallPhysics::BallPhysics(GameObject* pObj) : PhysicsComponent(), isMove(false)
 {
 	id.push_back(typeid(this));
 	pGameObject = pObj;
 	pGameObject->AddComponent(this);
+
+	WaveFileLoader* data;
+	ResourceManager::Instance().GetResource(&data, "BallHit", "Resource/Sound/BallHit.wav");
+
+	hitSE = NEW SoundPlayer();
+	hitSE->Create(data);
 
 	mass = 170.0f;		// ビリヤードのボールの重さ
 
@@ -31,13 +39,14 @@ void BallPhysics::Update()
 	velocity.y -= GRAVITY / 60.0f;
 
 	XMVECTOR _velo = XMLoadFloat3(&velocity);
-	_velo *= 0.985f;
+	_velo *= 0.99f;
 
 	XMStoreFloat3(&velocity, _velo);
 	
-	if (velocity.x < 0.001f && velocity.y < 0.001f && velocity.z < 0.001f)
+	if (fabsf(velocity.x) < 0.01f && fabsf(velocity.z) < 0.01f)
 	{
 		Messenger::BallMovement(pGameObject, false);
+		isMove = false;
 	}
 
 	prePos = pGameObject->pos;
@@ -46,18 +55,18 @@ void BallPhysics::Update()
 	pGameObject->pos.z += velocity.z;
 
 	pGameObject->SetWorld();
-	//pGameObject->pos.z += velocity.z;
-	/*TCHAR s[256];
-
-	_stprintf_s(s, _T("pos:%f %f %f\n"), velocity.x, velocity.y, velocity.z);
-	
-	OutputDebugString(s);*/
 }
 
 void BallPhysics::OnCollisionEnter(GameObject * other)
 {
-	if (other->tag != "Table" || other->tag != "Pocket")
+	if (other->tag != "Table" && !isMove)
+	{
 		Messenger::BallMovement(pGameObject, true);
+		hitSE->Play();
+	}
+
+	if(other->tag == "Pocket")
+		Messenger::BallMovement(pGameObject, false);
 }
 
 
