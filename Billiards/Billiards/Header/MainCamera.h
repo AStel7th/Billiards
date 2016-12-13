@@ -21,6 +21,8 @@ class MainCameraInput : public InputComponent
 private:
 	enum CameraState
 	{
+		Title,
+		TurnChange,
 		Shot,
 		FollowMovement,
 		BallSet,
@@ -31,9 +33,11 @@ private:
 	GameObject* cues;
 
 	float moveSpeed;
+	XMFLOAT3 startPos;
+	XMFLOAT3 startAt;
 	XMFLOAT3 followStatePos;
 
-	void MovePosition(XMFLOAT3& goal,XMFLOAT3& outPos);
+	void MovePosition(XMFLOAT3& nPos, XMFLOAT3& goal, XMFLOAT3& outPos);
 
 	void GamePhase(GAME_STATE state);
 public:
