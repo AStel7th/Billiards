@@ -11,6 +11,8 @@ private:
 	GAME_STATE nowState;
 	map<string, bool> ballList;
 
+	void GameStart();
+
 	void ShotPhase();
 
 	bool IsBallMoving();

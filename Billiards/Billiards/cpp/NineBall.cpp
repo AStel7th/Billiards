@@ -6,6 +6,8 @@
 #include "../Header/Collider.h"
 #include "../Header/Messenger.h"
 #include "../Header/MainCamera.h"
+#include "../Header/House.h"
+#include "../Header/TitleMenu.h"
 
 NineBall::NineBall() : GameObject()
 {
@@ -14,6 +16,10 @@ NineBall::NineBall() : GameObject()
 
 	SetWorld();
 
+	nowState = GAME_STATE::Title;
+
+	Create<TitleMenu>();
+	Create<House>();
 	Create<BilliardsTable>();
 	ballList[Create<HandBall>(61.5f, 78.0f, 0.0f)->name]	= false;
 	ballList[Create<Ball>(1, 9.8f, 78.0f, 0.0f)->name]	= false;
@@ -24,12 +30,11 @@ NineBall::NineBall() : GameObject()
 	ballList[Create<Ball>(6, 4.9f, 78.0f, 2.9f)->name]	= false;
 	ballList[Create<Ball>(7, -4.9f, 78.0f, -2.9f)->name] = false;
 	ballList[Create<Ball>(8, -4.9f, 78.0f, 2.9f)->name]	= false;
-	//ballList[Create<Ball>(9, 0.0f, 78.0f, 0.0f)->name]	= false;		//TODO::中央に設置すると、2つのポリゴンから衝突分の反射ベクトルが返ってくるため修正する
+	ballList[Create<Ball>(9, 0.0f, 78.0f, 0.0f)->name]	= false;		//TODO::中央に設置すると、2つのポリゴンから衝突分の反射ベクトルが返ってくるため修正する
 	Create<CuesController>();
 	Create<MainCamera>();
 
-	nowState = GAME_STATE::DecideOrder;
-
+	Messenger::OnGameStart.Add(*this, &NineBall::GameStart);
 	Messenger::OnShot.Add(*this, &NineBall::ShotPhase);
 	Messenger::BallMovement.Add(*this, &NineBall::isBallMovement);
 	Messenger::BallInPocket.Add(*this, &NineBall::IdentifyBall);
@@ -38,6 +43,7 @@ NineBall::NineBall() : GameObject()
 
 NineBall::~NineBall()
 {
+	Messenger::OnGameStart.Remove(*this, &NineBall::GameStart);
 	Messenger::OnShot.Remove(*this, &NineBall::ShotPhase);
 	Messenger::BallMovement.Remove(*this, &NineBall::isBallMovement);
 	Messenger::BallInPocket.Remove(*this, &NineBall::IdentifyBall);
@@ -60,6 +66,12 @@ bool NineBall::IsBallMoving()
 	return false;
 }
 
+void NineBall::GameStart()
+{
+	nowState = GAME_STATE::DecideOrder;
+	Messenger::GamePhase(nowState);
+}
+
 void NineBall::ShotPhase()
 {
 	/*nowState = GAME_STATE::BallMovement;
@@ -78,7 +90,7 @@ void NineBall::isBallMovement(GameObject * pBall,bool flg)
 
 	if (!IsBallMoving())
 	{
-		if (nowState != GAME_STATE::Shot && nowState != GAME_STATE::BallSet)
+		if (nowState != GAME_STATE::Title && nowState != GAME_STATE::Shot && nowState != GAME_STATE::BallSet)
 		{
 			nowState = GAME_STATE::Shot;
 			Messenger::GamePhase(nowState);

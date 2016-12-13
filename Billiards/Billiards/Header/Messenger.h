@@ -11,6 +11,16 @@ public:
 
 	virtual ~Messenger() {}
 
+	static Event<void()> OnGameStart;
+
+	static void GameStart()
+	{
+		if (OnGameStart.GetEventCount() != 0)
+		{
+			OnGameStart();
+		}
+	}
+
 	static Event<void(GAME_STATE)> OnGamePhase;
 
 	static void GamePhase(GAME_STATE state)
