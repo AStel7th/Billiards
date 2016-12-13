@@ -7,28 +7,19 @@
 #include "../Header/GameObject.h"
 #include "../Header/Collider.h"
 #include "../Header/NineBall.h"
+#include "../Header/InputDeviceManager.h"
 //#include "../Header/Effect.h"
+
+bool Game::isExit = false;
 
 Game::Game()
 {
-	// マウスカーソルをゲーム中は非表示にする
-	// ウィンドウのクライアント領域を取得する
-	RECT rc;
-	GetClientRect(Direct3D11::Instance().GetHWND(), &rc);
-
-	// クライアント領域を画面座標に変換する
-	POINT pt = { rc.left, rc.top };
-	POINT pt2 = { rc.right, rc.bottom };
-	ClientToScreen(Direct3D11::Instance().GetHWND(), &pt);
-	ClientToScreen(Direct3D11::Instance().GetHWND(), &pt2);
-	SetRect(&rc, pt.x, pt.y, pt2.x, pt2.y);
-
 	// カーソルの動作範囲を制限する
-	ClipCursor(&rc);
+	InputDeviceManager::Instance().ClipCursorWindow(true);
 
 	AudioSystem::Instance().Create();
 
-	//Sprite::Create();
+	Sprite::Create();
 	DrawSystem::Instance().Init(1);
 
 	timeCtrl = NEW TimeControl();
@@ -66,5 +57,8 @@ bool Game::Run()
 		DrawSystem::Instance().Draw();
 	}
 	
-	return true;
+	if (isExit)
+		return false;
+	else
+		return true;
 }

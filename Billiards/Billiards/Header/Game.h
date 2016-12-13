@@ -6,6 +6,8 @@ class TimeControl;
 // ゲームの核のクラスです
 class Game
 {
+private:
+	static bool isExit;
 public:
 	TimeControl* timeCtrl = nullptr;	//フレーム管理クラス
 public:
@@ -14,5 +16,8 @@ public:
 
 	bool Run();
 
-
+	static void ExitGame()
+	{
+		isExit = true;
+	}
 };

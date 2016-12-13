@@ -31,6 +31,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	ShowWindow(Direct3D11::Instance().hWnd, SW_SHOW);
 	UpdateWindow(Direct3D11::Instance().hWnd);
 
+	// カーソルアイコン変更
+	HCURSOR hCursor = GetCursor();
+	hCursor = LoadCursor(nullptr, IDC_ARROW);
+	SetCursor(hCursor);
+
 	// システムの初期化
 	g_pGame = make_unique<Game>();
 
@@ -48,7 +53,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		else
 		{
 			InputDeviceManager::Instance().Update();
-			g_pGame->Run();
+			if (!g_pGame->Run())
+				break;
 		}
 	}
 
@@ -74,7 +80,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, UINT wParam, LONG lParam)
 
 	case WM_SETCURSOR: // カーソルの設定
 		
-		SetCursor(nullptr);
+		//SetCursor(nullptr);
 
 		break;
 
