@@ -27,20 +27,20 @@ void MaterialData::SetTexture(const string& path)
 	size_t wLen = 0;
 	mbstowcs_s(&wLen, wstr, path.size() + 1, path.c_str(), _TRUNCATE);
 
-	//Resourceからのパスを追加
-	TCHAR res[512] = L"Resource/";
-	wcscat_s(res, wstr);
+	////Resourceからのパスを追加
+	//TCHAR res[512] = L"Resource/";
+	//wcscat_s(res, wstr);
 
 	if (ext == "tga")
 	{
-		hr = LoadFromTGAFile(res, &metadata, image);
+		hr = LoadFromTGAFile(wstr, &metadata, image);
 		if (FAILED(hr)) {
 			return;
 		}
 	}
 	else
 	{
-		hr = LoadFromWICFile(res, 0, &metadata, image);
+		hr = LoadFromWICFile(wstr, 0, &metadata, image);
 		if (FAILED(hr)) {
 			return;
 		}

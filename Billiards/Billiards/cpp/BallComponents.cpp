@@ -86,7 +86,7 @@ BallGraphics::BallGraphics(GameObject* pObj, MeshData* mesh,int num) : GraphicsC
 			continue;
 
 		matData = var.materialData[0];
-		matData->SetTexture("Texture/" + to_string(num) + ".png");
+		matData->SetTexture("Resource/Texture/" + to_string(num) + ".png");
 		var.materialData[0] = matData;
 	}
 

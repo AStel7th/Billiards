@@ -328,6 +328,7 @@ void FBXLoader::CopyMatrialData(FbxSurfaceMaterial* mat, MESH* mesh, int indexCn
 		if (it->second.size())
 		{
 			std::string path = it->second[0];
+			path = "Resource/" + path;
 			data.SetTexture(path);
 		}
 	}
