@@ -35,4 +35,11 @@ public:
 	// 1 = Right
 	// 3 = Center
 	bool GetMouseButtonDown(int num);
+
+	void CursorVisible(bool b)
+	{
+		ShowCursor(b);
+	}
+
+	void ClipCursorWindow(bool b);
 };

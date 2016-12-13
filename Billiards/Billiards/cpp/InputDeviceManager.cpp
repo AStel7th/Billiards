@@ -130,3 +130,26 @@ bool InputDeviceManager::GetMouseButtonDown(int num)
 	else
 		return false;
 }
+
+void InputDeviceManager::ClipCursorWindow(bool b)
+{
+	if (b)
+	{
+		RECT rc;
+		GetClientRect(Direct3D11::Instance().GetHWND(), &rc);
+
+		// クライアント領域を画面座標に変換する
+		POINT pt = { rc.left, rc.top };
+		POINT pt2 = { rc.right, rc.bottom };
+		ClientToScreen(Direct3D11::Instance().GetHWND(), &pt);
+		ClientToScreen(Direct3D11::Instance().GetHWND(), &pt2);
+		SetRect(&rc, pt.x, pt.y, pt2.x, pt2.y);
+
+		// カーソルの動作範囲を制限する
+		ClipCursor(&rc);
+	}
+	else
+	{
+		ClipCursor(nullptr);
+	}
+}
