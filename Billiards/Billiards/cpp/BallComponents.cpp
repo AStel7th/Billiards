@@ -18,7 +18,7 @@ BallPhysics::BallPhysics(GameObject* pObj) : PhysicsComponent(), isMove(false)
 	pGameObject->AddComponent(this);
 
 	WaveFileLoader* data;
-	ResourceManager::Instance().GetResource(&data, "BallHit", "Resource/Sound/BallHit.wav");
+	ResourceManager::Instance().GetResource(&data, "Resource/Sound/BallHit.wav");
 
 	hitSE = NEW SoundPlayer();
 	hitSE->Create(data);
@@ -32,6 +32,7 @@ BallPhysics::BallPhysics(GameObject* pObj) : PhysicsComponent(), isMove(false)
 
 BallPhysics::~BallPhysics()
 {
+	SAFE_DELETE(hitSE);
 }
 
 void BallPhysics::Update()
@@ -85,7 +86,7 @@ BallGraphics::BallGraphics(GameObject* pObj, MeshData* mesh,int num) : GraphicsC
 			continue;
 
 		matData = var.materialData[0];
-		matData->SetTexture("Texture/" + to_string(num) + ".png");
+		matData->pTexture->Create("Texture/" + to_string(num) + ".png");
 		var.materialData[0] = matData;
 	}
 
@@ -98,5 +99,5 @@ BallGraphics::~BallGraphics()
 
 void BallGraphics::Update()
 {
-	DrawSystem::Instance().AddDrawList(DRAW_PRIOLITY::Opaque, pMeshData->GetName(), this);
+	DrawSystem::Instance().AddDrawList(DRAW_PRIOLITY::Opaque, pGameObject->name, this);
 }

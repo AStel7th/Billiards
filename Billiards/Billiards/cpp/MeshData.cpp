@@ -18,16 +18,6 @@ int MeshData::GetMeshCount()
 	return meshList.size();
 }
 
-void MeshData::SetName(string name)
-{
-	modelName = name;
-}
-
-string& MeshData::GetName()
-{
-	return modelName;
-}
-
 void MeshData::SetAnimationFrame(int index,int frame)
 {
 	XMMATRIX m(-1, 0, 0, 0,

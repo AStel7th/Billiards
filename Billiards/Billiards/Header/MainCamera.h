@@ -21,6 +21,7 @@ class MainCameraInput : public InputComponent
 private:
 	enum CameraState
 	{
+		Title,
 		Shot,
 		FollowMovement,
 		BallSet,

@@ -1,6 +1,11 @@
 #pragma once
 #include <windows.h>
-#include <xaudio2.h>
+//#if (_WIN32_WINNT >= 0x0602 /*_WIN32_WINNT_WIN8*/)
+//#include <xaudio2.h>
+//#else
+#include <C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include\xaudio2.h>
+//#endif
+
 #include "func.h"
 
 class WaveFileLoader;

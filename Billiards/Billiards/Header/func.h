@@ -142,12 +142,12 @@ static string GetExtension(const string &path)
 	return ext;
 }
 
-static LPWSTR StringToWideChar(string temp)
+static LPWSTR* StringToWideChar(LPWSTR* str, string temp)
 {
 	int n;
 	n = MultiByteToWideChar(CP_ACP, 0, temp.c_str(), temp.size(), nullptr, 0);
-	LPWSTR p = NEW WCHAR[n + 1];
-	n = MultiByteToWideChar(CP_ACP, 0, temp.c_str(), temp.size(), p, n);
-	*(p + n) = '\0';
-	return p;
+	*str = NEW WCHAR[n + 1];
+	n = MultiByteToWideChar(CP_ACP, 0, temp.c_str(), temp.size(), *str, n);
+	*(*str + n) = '\0';
+	return str;
 }

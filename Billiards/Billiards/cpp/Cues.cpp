@@ -61,7 +61,7 @@ Cues::Cues() : GameObject(),pMesh(nullptr),pCollider(nullptr),pInputComponent(nu
 
 	SetLayer("Cues");
 
-	ResourceManager::Instance().GetResource(&pMesh,"Cues", "Resource/Cues.fbx");
+	ResourceManager::Instance().GetResource(&pMesh,"Resource/Cues.fbx");
 
 	pPhysicsComponent = NEW CuesPhysics(this);
 	

@@ -87,9 +87,8 @@ private:
 	VertexShader*	pvsFBXInstancing = nullptr;
 	VertexShader*	pvsFBXAnimation = nullptr;
 	VertexShader*	pvsFBXAnimInstancing = nullptr;
-	PixelShader*	ppsFBX = nullptr;
 	PixelShader*	ppsVertexColor = nullptr;
-	PixelShader*	ppsFBXAnimation = nullptr;
+	PixelShader*	ppsTex = nullptr;
 
 	ComPtr<ID3D11InputLayout> pInputLayoutStaticMesh = nullptr;
 	ComPtr<ID3D11InputLayout> pInputLayoutAnimation = nullptr;

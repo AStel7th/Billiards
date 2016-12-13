@@ -35,7 +35,7 @@ MainCameraInput::MainCameraInput(GameObject * pObj) : InputComponent(), whiteBal
 	whiteBall = GameObject::All::GameObjectFindWithName("HandBall");
 	cues = GameObject::All::GameObjectFindWithName("Cues");
 
-	camState = Shot;
+	camState = Title;
 
 	moveSpeed = 3.0f;
 
@@ -51,38 +51,48 @@ MainCameraInput::~MainCameraInput()
 
 void MainCameraInput::Update()
 {
-	XMFLOAT3 cameraOut;
+	XMFLOAT3 cameraPos;
+	XMFLOAT3 cameraAt;
 
 	switch (camState)
 	{
+	case CameraState::Title:
+		cameraPos = XMFLOAT3(-600.0f, 150.0f, 200.0f);
+		cameraAt = XMFLOAT3(200.0f, 80.0f, -400.0f);
+
+		break;
 	case CameraState::Shot:
 	{
 		XMVECTOR distVec;
-		XMVECTOR cameraPos;
+		XMVECTOR pos;
 		XMVECTOR cuesPos = XMLoadFloat3(&cues->GetWorldPos());
 		XMVECTOR ballPos = XMLoadFloat3(&whiteBall->GetWorldPos());
 
 		distVec = ballPos - cuesPos;
 		distVec = XMVector3Normalize(distVec);
 
-		cameraPos = ballPos - distVec * 120.0f;
+		pos = ballPos - distVec * 120.0f;
 
-		XMStoreFloat3(&cameraOut, cameraPos);
+		XMStoreFloat3(&cameraPos, pos);
 
-		cameraOut.y = 110.0f;
+		cameraPos.y = 110.0f;
 
-		MovePosition(cameraOut, cameraOut);
+		MovePosition(cameraPos, cameraPos);
+
+		cameraAt = whiteBall->pos;
 	}
 		break;
 	case CameraState::FollowMovement:
-		MovePosition(followStatePos, cameraOut);
+		MovePosition(followStatePos, cameraPos);
+		cameraAt = whiteBall->pos;
 		break;
 	case CameraState::BallSet:
-		MovePosition(followStatePos, cameraOut);
+		MovePosition(followStatePos, cameraPos);
+		cameraAt = whiteBall->pos;
 		break;
 	}
 
-	Camera::Instance().SetView(cameraOut, whiteBall->GetWorldPos(), XMFLOAT3(0.0f, 1.0f, 0.0f));
+	Camera::Instance().SetView(cameraPos, cameraAt, XMFLOAT3(0.0f, 1.0f, 0.0f));
 }
 
 void MainCameraInput::MovePosition(XMFLOAT3& goal, XMFLOAT3& outPos)
@@ -107,7 +117,7 @@ void MainCameraInput::MovePosition(XMFLOAT3& goal, XMFLOAT3& outPos)
 
 void MainCameraInput::GamePhase(GAME_STATE state)
 {
-	switch (state)
+	/*switch (state)
 	{
 	case GAME_STATE::Shot:
 
@@ -126,5 +136,5 @@ void MainCameraInput::GamePhase(GAME_STATE state)
 		camState = BallSet;
 
 		break;
-	}
+	}*/
 }

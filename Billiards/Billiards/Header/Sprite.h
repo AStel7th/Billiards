@@ -3,8 +3,7 @@
 #include <map>
 #include <list>
 #include <locale.h>
-
-class GraphicsPipeline;
+#include "Shader.h"
 
 //====================================================================
 //  スプライト関連
@@ -86,13 +85,17 @@ class Sprite
 	// シェーダー用定数バッファ
 	static ComPtr<ID3D11Buffer> m_pObjBuffers;
 
+	//インプットレイアウト
+	static ComPtr<ID3D11InputLayout> pInputLayout;
+
 	// シェーダーリソースビュー
 	ComPtr<ID3D11ShaderResourceView> m_pSRView;
 
 	// サンプラーステート
 	static ComPtr<ID3D11SamplerState> m_pSamplerState;
 
-	static unique_ptr<GraphicsPipeline> m_pGraphicsPipeline;
+	static VertexShader* pVertexShader;
+	static PixelShader* pPixelShader;
 
 	TextureInfo* tex;		// テクスチャ
 	shared_ptr<TextureInfo> subtex;		// テクスチャ
@@ -129,40 +132,40 @@ public:
 	static void end_last();
 
 	// テクスチャ設定
-	void setTexture(TextureInfo* tex);
+	void SetTexture(TextureInfo* tex);
 
-	void setSubTexture(TextureInfo* tex);
+	void SetSubTexture(TextureInfo* tex);
 
 	// 板ポリサイズ指定
-	void setSize(int w, int h);
-	void getSize(int* w, int* h);
+	void SetSize(int w, int h);
+	void GetSize(int* w, int* h);
 
 	// スクリーンサイズ指定
-	void setScreenSize(int w, int h);
+	void SetScreenSize(int w, int h);
 
 	// ピボット指定
-	void setPivot(float x, float y);
+	void SetPivot(float x, float y);
 
 	// 姿勢指定
-	void setPos(float x, float y);
-	void getPos(float* x, float* y);
-	XMFLOAT2* getPos(){ return &XMFLOAT2(posX, posY); };
-	void setRotate(float deg);
-	float getRotate();
-	void setScale(float sx, float sy);
+	void SetPos(float x, float y);
+	void GetPos(float* x, float* y);
+	XMFLOAT2* GetPos(){ return &XMFLOAT2(posX, posY); };
+	void SetRotate(float deg);
+	float GetRotate();
+	void SetScale(float sx, float sy);
 
 	// UV切り取り指定
-	void setUV(float l, float t, float w, float h);
+	void SetUV(float l, float t, float w, float h);
 	// UV切り取り指定
-	void setSubUV(float l, float t, float w, float h);
+	void SetSubUV(float l, float t, float w, float h);
 
 	// α設定
-	void setColor(XMFLOAT4& a);
-	XMFLOAT4& getColor();
+	void SetColor(XMFLOAT4& a);
+	XMFLOAT4& GetColor();
 
 	// プライオリティ設定
-	void setPriority(float z);
-	float getPriority();
+	void SetPriority(float z);
+	float GetPriority();
 
 	// 描画リストに追加
 	void Draw();

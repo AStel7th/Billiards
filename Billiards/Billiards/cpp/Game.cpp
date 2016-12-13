@@ -1,6 +1,7 @@
 #include "../Header/Game.h"
 #include "../Header/TimeControl.h"
 #include "../Header/AudioSystem.h"
+#include "../Header/Sprite.h"
 #include "../Header/SpaceDivision.h"
 #include "../Header/DrawSystem.h"
 #include "../Header/Camera.h"
@@ -28,7 +29,7 @@ Game::Game()
 
 	AudioSystem::Instance().Create();
 
-	//Sprite::Create();
+	Sprite::Create();
 	DrawSystem::Instance().Init(1);
 
 	timeCtrl = NEW TimeControl();

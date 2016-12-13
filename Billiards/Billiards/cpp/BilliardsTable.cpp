@@ -5,7 +5,7 @@
 #include "../Header/MeshData.h"
 #include "../Header/Pocket.h"
 
-BilliardsTable::BilliardsTable() : GameObject()
+BilliardsTable::BilliardsTable() : GameObject(), pMesh(nullptr),pPhysicsComponent(nullptr),pGraphicsComponent(nullptr), pCollider(nullptr)
 {
 	SetName("Table");
 
@@ -13,7 +13,7 @@ BilliardsTable::BilliardsTable() : GameObject()
 
 	SetLayer("Table");
 	//pMesh = ResourceManager::Instance().GetResource("Table", "Resource/billiardsTableCollider.fbx");
-	ResourceManager::Instance().GetResource(&pMesh, "Table", "Resource/BilliardsTableModel.fbx");
+	ResourceManager::Instance().GetResource(&pMesh, "Resource/BilliardsTableModel.fbx");
 	//pMesh = ResourceManager::Instance().GetResource("Table", "Resource/goblin2.fbx");
 
 	pPhysicsComponent = NEW BilliardsTablePhysics(this);

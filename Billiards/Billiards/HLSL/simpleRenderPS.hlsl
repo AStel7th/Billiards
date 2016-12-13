@@ -12,8 +12,10 @@ cbuffer cbMaterial : register( b0 )
 
 struct PS_INPUT
 {
-    float4 Pos : SV_POSITION;
-	float2 Tex : TEXCOORD;
+	float4 Pos	: SV_POSITION;//位置
+	float3 Norm : NORMAL;//頂点法線
+	float2 Tex	: TEXCOORD;//テクスチャー座標
+	float4 Color : COLOR0;//最終カラー（頂点シェーダーにおいての）
 };
 
 float4 PS( PS_INPUT input) : SV_Target

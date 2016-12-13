@@ -39,5 +39,5 @@ BilliardsTableGraphics::~BilliardsTableGraphics()
 void BilliardsTableGraphics::Update()
 {
 	//frame++;
-	DrawSystem::Instance().AddDrawList(DRAW_PRIOLITY::Opaque, pMeshData->GetName(), this);
+	DrawSystem::Instance().AddDrawList(DRAW_PRIOLITY::Opaque, pGameObject->name, this);
 }

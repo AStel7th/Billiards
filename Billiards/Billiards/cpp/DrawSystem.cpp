@@ -18,9 +18,8 @@ DrawSystem::~DrawSystem()
 	SAFE_DELETE(pvsFBXInstancing);
 	SAFE_DELETE(pvsFBXAnimInstancing);
 	SAFE_DELETE(pvsFBXAnimation);
-	SAFE_DELETE(ppsFBX);
 	SAFE_DELETE(ppsVertexColor);
-	SAFE_DELETE(ppsFBXAnimation);
+	SAFE_DELETE(ppsTex);
 }
 
 // システムを初期化する
@@ -52,7 +51,7 @@ HRESULT DrawSystem::Init(unsigned int msaaSamples)
 	blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
 	blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
 	blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;      ///tryed D3D11_BLEND_ONE ... (and others desperate combinations ... )
+	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;      ///tryed D3D11_BLEND_ONE ... (and others desperate combinations ... )
 	blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;     ///tryed D3D11_BLEND_ONE ... (and others desperate combinations ... )
 	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
@@ -76,9 +75,8 @@ HRESULT DrawSystem::Init(unsigned int msaaSamples)
 	pvsFBXInstancing = NEW VertexShader(d3d11.pD3DDevice.Get(), L"HLSL/simpleRenderInstancingVS.hlsl", "vs_main");
 	pvsFBXAnimInstancing = NEW VertexShader(d3d11.pD3DDevice.Get(), L"HLSL/AnimationInstance.hlsl", "VSSkin");
 	pvsFBXAnimation  = NEW VertexShader(d3d11.pD3DDevice.Get(), L"HLSL/FbxAnimation.hlsl", "VSSkin");
-	ppsFBX			 = NEW PixelShader(d3d11.pD3DDevice.Get(), L"HLSL/simpleRenderPS.hlsl", "PS");
-	ppsVertexColor	 = NEW PixelShader(d3d11.pD3DDevice.Get(), L"HLSL/VertexColor.hlsl", "ps_main");
-	ppsFBXAnimation  = NEW PixelShader(d3d11.pD3DDevice.Get(), L"HLSL/FbxAnimation.hlsl", "PSSkin");
+	ppsVertexColor	 = NEW PixelShader(d3d11.pD3DDevice.Get(), L"HLSL/simpleRenderPS.hlsl", "PS");
+	ppsTex			 = NEW PixelShader(d3d11.pD3DDevice.Get(), L"HLSL/SimpleRenderTexPS.hlsl", "PS");
 
 	D3D11_INPUT_ELEMENT_DESC layout_staticMesh[] =
 	{
@@ -238,7 +236,7 @@ void DrawSystem::SetMatrix(vector<GraphicsComponent*>& pGClist)
 // リストに登録されたタスクを描画する
 bool DrawSystem::Draw()
 {
-	float ClearColor[4] = { 0.0f, 0.0f, 0.7f, 1.0f };
+	float ClearColor[4] = { 0.08f, 0.05f, 0.05f, 1.0f };
 	//float ClearColor[4] = { 0,0,1,1 };
 
 	// バックバッファをクリアする。
@@ -253,7 +251,7 @@ bool DrawSystem::Draw()
 	d3d11.pD3DDeviceContext->OMSetDepthStencilState(pDepthStencilState.Get(), 0);
 
 	d3d11.pD3DDeviceContext->VSSetConstantBuffers(0, 1, pcBuffer0.GetAddressOf());
-	d3d11.pD3DDeviceContext->PSSetConstantBuffers(0, 1, pcBuffer0.GetAddressOf());
+	//d3d11.pD3DDeviceContext->PSSetConstantBuffers(0, 1, pcBuffer0.GetAddressOf());
 
 	D3D11_MAPPED_SUBRESOURCE pData;
 	if (SUCCEEDED(d3d11.pD3DDeviceContext->Map(pcBuffer0.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &pData)))
@@ -275,22 +273,21 @@ bool DrawSystem::Draw()
 
 		if (refCnt > 1)
 		{
-			MeshData* pMesh = nullptr;
-			ResourceManager::Instance().GetResource(&pMesh, (*it).first);
+			MeshData* pMesh = (*it).second[0]->pMeshData;
 			isAnim = pMesh->isAnimation;
 
 			if (isAnim)
 			{
 				d3d11.pD3DDeviceContext->VSSetShader(pvsFBXAnimInstancing->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBufferInstance.GetAddressOf());
-				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);
+				/*d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);*/
 				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutAnimationInstance.Get());
 			}
 			else
 			{
 				d3d11.pD3DDeviceContext->VSSetShader(pvsFBXInstancing->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBufferInstance.GetAddressOf());
-				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);
+				//d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutStaticMeshInstance.Get());
 			}
 
@@ -298,21 +295,21 @@ bool DrawSystem::Draw()
 		}
 		else
 		{
-			MeshData* pMesh = nullptr;
-			ResourceManager::Instance().GetResource(&pMesh, (*it).first);
+			MeshData* pMesh = (*it).second[0]->pMeshData;
+
 			isAnim = pMesh->isAnimation;
 			if (isAnim)
 			{
 				d3d11.pD3DDeviceContext->VSSetShader(pvsFBXAnimation->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBuffer1.GetAddressOf());
-				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);
+				//d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutAnimation.Get());
 			}
 			else
 			{
 				d3d11.pD3DDeviceContext->VSSetShader(pvsFBX->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBuffer1.GetAddressOf());
-				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);
+				//d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutStaticMesh.Get());
 			}
 
@@ -421,13 +418,19 @@ void DrawSystem::Render(GraphicsComponent* pGC,bool isAnim)
 			if (material.pMaterialCb)
 				d3d11.pD3DDeviceContext->UpdateSubresource(material.pMaterialCb.Get(), 0, nullptr, &material.materialConstantData, 0, 0);
 
-			d3d11.pD3DDeviceContext->VSSetConstantBuffers(3, 1, material.pMaterialCb.GetAddressOf());
-			d3d11.pD3DDeviceContext->PSSetConstantBuffers(3, 1, material.pMaterialCb.GetAddressOf());
+			d3d11.pD3DDeviceContext->VSSetConstantBuffers(0, 1, material.pMaterialCb.GetAddressOf());
+			d3d11.pD3DDeviceContext->PSSetConstantBuffers(0, 1, material.pMaterialCb.GetAddressOf());
 
-			if (material.pSRV != nullptr)
+			if (material.pTexture->GetSRV() != nullptr)
 			{
-				d3d11.pD3DDeviceContext->PSSetShaderResources(0, 1, material.pSRV.GetAddressOf());
-				d3d11.pD3DDeviceContext->PSSetSamplers(0, 1, material.pSampler.GetAddressOf());
+				d3d11.pD3DDeviceContext->PSSetShaderResources(0, 1, material.pTexture->GetSRV().GetAddressOf());
+				d3d11.pD3DDeviceContext->PSSetSamplers(0, 1, material.pTexture->GetSampler().GetAddressOf());
+
+				d3d11.pD3DDeviceContext->PSSetShader(ppsTex->GetShader(), nullptr, 0);
+			}
+			else
+			{
+				d3d11.pD3DDeviceContext->PSSetShader(ppsVertexColor->GetShader(), nullptr, 0);
 			}
 
 			//Draw
@@ -527,13 +530,19 @@ void DrawSystem::RenderInstancing(vector<GraphicsComponent*>& pGClist, int refCn
 			if (material.pMaterialCb)
 				d3d11.pD3DDeviceContext->UpdateSubresource(material.pMaterialCb.Get(), 0, nullptr, &material.materialConstantData, 0, 0);
 
-			d3d11.pD3DDeviceContext->VSSetConstantBuffers(3, 1, material.pMaterialCb.GetAddressOf());
-			d3d11.pD3DDeviceContext->PSSetConstantBuffers(3, 1, material.pMaterialCb.GetAddressOf());
+			d3d11.pD3DDeviceContext->VSSetConstantBuffers(0, 1, material.pMaterialCb.GetAddressOf());
+			d3d11.pD3DDeviceContext->PSSetConstantBuffers(0, 1, material.pMaterialCb.GetAddressOf());
 
-			if (material.pSRV != nullptr)
+			if (material.pTexture->GetSRV() != nullptr)
 			{
-				d3d11.pD3DDeviceContext->PSSetShaderResources(0, 1, material.pSRV.GetAddressOf());
-				d3d11.pD3DDeviceContext->PSSetSamplers(0, 1, material.pSampler.GetAddressOf());
+				d3d11.pD3DDeviceContext->PSSetShaderResources(0, 1, material.pTexture->GetSRV().GetAddressOf());
+				d3d11.pD3DDeviceContext->PSSetSamplers(0, 1, material.pTexture->GetSampler().GetAddressOf());
+
+				d3d11.pD3DDeviceContext->PSSetShader(ppsTex->GetShader(), nullptr, 0);
+			}
+			else
+			{
+				d3d11.pD3DDeviceContext->PSSetShader(ppsVertexColor->GetShader(), nullptr, 0);
 			}
 
 			//Draw

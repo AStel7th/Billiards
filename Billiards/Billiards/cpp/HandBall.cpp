@@ -18,7 +18,7 @@ pGraphicsComponent(nullptr)
 
 	SetLayer("Ball");
 
-	ResourceManager::Instance().GetResource(&pMesh,"Ball" + to_string(0), "Resource/Ball.fbx");
+	ResourceManager::Instance().GetResource(&pMesh, "Resource/Ball.fbx");
 
 	pPhysicsComponent = NEW BallPhysics(this);
 

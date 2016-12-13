@@ -6,6 +6,7 @@
 #include "../Header/Collider.h"
 #include "../Header/Messenger.h"
 #include "../Header/MainCamera.h"
+#include "../Header/House.h"
 
 NineBall::NineBall() : GameObject()
 {
@@ -14,6 +15,7 @@ NineBall::NineBall() : GameObject()
 
 	SetWorld();
 
+	//Create<House>();
 	Create<BilliardsTable>();
 	ballList[Create<HandBall>(61.5f, 78.0f, 0.0f)->name]	= false;
 	ballList[Create<Ball>(1, 9.8f, 78.0f, 0.0f)->name]	= false;
