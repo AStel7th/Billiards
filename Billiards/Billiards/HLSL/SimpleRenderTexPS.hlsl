@@ -21,5 +21,5 @@ struct PS_INPUT
 float4 PS(PS_INPUT input) : SV_Target
 {
 	float4 tex = txDiffuse.Sample(samLinear, input.Tex);
-	return diffuse;
+	return diffuse * tex;
 }

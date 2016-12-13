@@ -1,12 +1,12 @@
 cbuffer ObjBuffer : register(b0)
 {
-	column_major float4x4 g_world : packoffset(c0);
-	column_major float4x4 g_proj : packoffset(c4);
-	float g_uvLeft : packoffset(c8.x);
-	float g_uvTop : packoffset(c8.y);
-	float g_uvW : packoffset(c8.z);
-	float g_uvH : packoffset(c8.w);
-	float4 color : packoffset(c12);
+	matrix g_world;
+	matrix g_proj;
+	float g_uvLeft;
+	float g_uvTop;
+	float g_uvW;
+	float g_uvH;
+	float4 color;
 }
 
 
