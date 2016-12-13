@@ -18,9 +18,8 @@ DrawSystem::~DrawSystem()
 	SAFE_DELETE(pvsFBXInstancing);
 	SAFE_DELETE(pvsFBXAnimInstancing);
 	SAFE_DELETE(pvsFBXAnimation);
-	SAFE_DELETE(ppsFBX);
 	SAFE_DELETE(ppsVertexColor);
-	SAFE_DELETE(ppsFBXAnimation);
+	SAFE_DELETE(ppsTex);
 }
 
 // システムを初期化する
@@ -52,7 +51,7 @@ HRESULT DrawSystem::Init(unsigned int msaaSamples)
 	blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
 	blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
 	blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;      ///tryed D3D11_BLEND_ONE ... (and others desperate combinations ... )
+	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;      ///tryed D3D11_BLEND_ONE ... (and others desperate combinations ... )
 	blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;     ///tryed D3D11_BLEND_ONE ... (and others desperate combinations ... )
 	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
@@ -72,13 +71,12 @@ HRESULT DrawSystem::Init(unsigned int msaaSamples)
 		return E_FAIL;
 	}
 
-	pvsFBX			 = NEW VertexShader(d3d11.pD3DDevice.Get(), L"HLSL/simpleRenderVS.hlsl", "vs_main");
+	pvsFBX = NEW VertexShader(d3d11.pD3DDevice.Get(), L"HLSL/simpleRenderVS.hlsl", "vs_main");
 	pvsFBXInstancing = NEW VertexShader(d3d11.pD3DDevice.Get(), L"HLSL/simpleRenderInstancingVS.hlsl", "vs_main");
 	pvsFBXAnimInstancing = NEW VertexShader(d3d11.pD3DDevice.Get(), L"HLSL/AnimationInstance.hlsl", "VSSkin");
-	pvsFBXAnimation  = NEW VertexShader(d3d11.pD3DDevice.Get(), L"HLSL/FbxAnimation.hlsl", "VSSkin");
-	ppsFBX			 = NEW PixelShader(d3d11.pD3DDevice.Get(), L"HLSL/simpleRenderPS.hlsl", "PS");
-	ppsVertexColor	 = NEW PixelShader(d3d11.pD3DDevice.Get(), L"HLSL/VertexColor.hlsl", "ps_main");
-	ppsFBXAnimation  = NEW PixelShader(d3d11.pD3DDevice.Get(), L"HLSL/FbxAnimation.hlsl", "PSSkin");
+	pvsFBXAnimation = NEW VertexShader(d3d11.pD3DDevice.Get(), L"HLSL/FbxAnimation.hlsl", "VSSkin");
+	ppsVertexColor = NEW PixelShader(d3d11.pD3DDevice.Get(), L"HLSL/simpleRenderPS.hlsl", "PS");
+	ppsTex = NEW PixelShader(d3d11.pD3DDevice.Get(), L"HLSL/SimpleRenderTexPS.hlsl", "PS");
 
 	D3D11_INPUT_ELEMENT_DESC layout_staticMesh[] =
 	{
@@ -98,26 +96,26 @@ HRESULT DrawSystem::Init(unsigned int msaaSamples)
 
 	/*D3D11_INPUT_ELEMENT_DESC layout_staticMesh_instance[] =
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "MATRIX",   0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,  0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-		{ "MATRIX",   1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 16, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-		{ "MATRIX",   2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 32, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-		{ "MATRIX",   3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 48, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "MATRIX",   0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,  0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+	{ "MATRIX",   1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 16, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+	{ "MATRIX",   2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 32, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+	{ "MATRIX",   3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 48, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
 	};
 
 	D3D11_INPUT_ELEMENT_DESC layout_Animation_instance[] =
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "BONE_INDEX", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "BONE_WEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "MATRIX",   0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,  0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-		{ "MATRIX",   1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 16, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-		{ "MATRIX",   2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 32, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-		{ "MATRIX",   3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 48, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "BONE_INDEX", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "BONE_WEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "MATRIX",   0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,  0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+	{ "MATRIX",   1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 16, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+	{ "MATRIX",   2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 32, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+	{ "MATRIX",   3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 48, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
 	};*/
 
 	// InputLayoutの作成
@@ -209,7 +207,7 @@ HRESULT DrawSystem::Init(unsigned int msaaSamples)
 	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
 	srvDesc.BufferEx.NumElements = count;                  // リソース内の要素の数
 
-	// 構造化バッファーをもとにシェーダーリソースビューを作成する
+														   // 構造化バッファーをもとにシェーダーリソースビューを作成する
 	if (FAILED(d3d11.pD3DDevice->CreateShaderResourceView(pTransformStructuredBuffer.Get(), &srvDesc, &pTransformSRV)))
 		return E_FAIL;
 
@@ -220,7 +218,7 @@ void DrawSystem::SetMatrix(vector<GraphicsComponent*>& pGClist)
 {
 	HRESULT hr = S_OK;
 	const uint32_t count = MAX_INSTANCE;
-	
+
 	D3D11_MAPPED_SUBRESOURCE MappedResource;
 	d3d11.pD3DDeviceContext->Map(pTransformStructuredBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
 
@@ -238,7 +236,7 @@ void DrawSystem::SetMatrix(vector<GraphicsComponent*>& pGClist)
 // リストに登録されたタスクを描画する
 bool DrawSystem::Draw()
 {
-	float ClearColor[4] = { 0.0f, 0.0f, 0.7f, 1.0f };
+	float ClearColor[4] = { 0.08f, 0.05f, 0.05f, 1.0f };
 	//float ClearColor[4] = { 0,0,1,1 };
 
 	// バックバッファをクリアする。
@@ -253,7 +251,7 @@ bool DrawSystem::Draw()
 	d3d11.pD3DDeviceContext->OMSetDepthStencilState(pDepthStencilState.Get(), 0);
 
 	d3d11.pD3DDeviceContext->VSSetConstantBuffers(0, 1, pcBuffer0.GetAddressOf());
-	d3d11.pD3DDeviceContext->PSSetConstantBuffers(0, 1, pcBuffer0.GetAddressOf());
+	//d3d11.pD3DDeviceContext->PSSetConstantBuffers(0, 1, pcBuffer0.GetAddressOf());
 
 	D3D11_MAPPED_SUBRESOURCE pData;
 	if (SUCCEEDED(d3d11.pD3DDeviceContext->Map(pcBuffer0.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &pData)))
@@ -275,22 +273,21 @@ bool DrawSystem::Draw()
 
 		if (refCnt > 1)
 		{
-			MeshData* pMesh = nullptr;
-			ResourceManager::Instance().GetResource(&pMesh, (*it).first);
+			MeshData* pMesh = (*it).second[0]->pMeshData;
 			isAnim = pMesh->isAnimation;
 
 			if (isAnim)
 			{
 				d3d11.pD3DDeviceContext->VSSetShader(pvsFBXAnimInstancing->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBufferInstance.GetAddressOf());
-				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);
+				/*d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);*/
 				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutAnimationInstance.Get());
 			}
 			else
 			{
 				d3d11.pD3DDeviceContext->VSSetShader(pvsFBXInstancing->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBufferInstance.GetAddressOf());
-				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);
+				//d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutStaticMeshInstance.Get());
 			}
 
@@ -298,26 +295,26 @@ bool DrawSystem::Draw()
 		}
 		else
 		{
-			MeshData* pMesh = nullptr;
-			ResourceManager::Instance().GetResource(&pMesh, (*it).first);
+			MeshData* pMesh = (*it).second[0]->pMeshData;
+
 			isAnim = pMesh->isAnimation;
 			if (isAnim)
 			{
 				d3d11.pD3DDeviceContext->VSSetShader(pvsFBXAnimation->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBuffer1.GetAddressOf());
-				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);
+				//d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutAnimation.Get());
 			}
 			else
 			{
 				d3d11.pD3DDeviceContext->VSSetShader(pvsFBX->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBuffer1.GetAddressOf());
-				d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);
+				//d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutStaticMesh.Get());
 			}
 
 
-			Render((*it).second[0],isAnim);
+			Render((*it).second[0], isAnim);
 		}
 	}
 
@@ -338,7 +335,7 @@ bool DrawSystem::Draw()
 	return true;
 }
 
-void DrawSystem::Render(GraphicsComponent* pGC,bool isAnim)
+void DrawSystem::Render(GraphicsComponent* pGC, bool isAnim)
 {
 	// FBX Modelのnode数を取得
 	size_t nodeCount = pGC->pMeshData->GetMeshCount();
@@ -368,7 +365,7 @@ void DrawSystem::Render(GraphicsComponent* pGC,bool isAnim)
 		d3d11.pD3DDeviceContext->Unmap(pcBuffer1.Get(), 0);
 
 		pGC->pMeshData->SetAnimationFrame(j, pGC->frame);
-		
+
 		//フレームを進めたことにより変化したポーズ（ボーンの行列）をシェーダーに渡す
 		D3D11_MAPPED_SUBRESOURCE pData;
 		if (SUCCEEDED(d3d11.pD3DDeviceContext->Map(pcBoneBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &pData)))
@@ -421,13 +418,19 @@ void DrawSystem::Render(GraphicsComponent* pGC,bool isAnim)
 			if (material.pMaterialCb)
 				d3d11.pD3DDeviceContext->UpdateSubresource(material.pMaterialCb.Get(), 0, nullptr, &material.materialConstantData, 0, 0);
 
-			d3d11.pD3DDeviceContext->VSSetConstantBuffers(3, 1, material.pMaterialCb.GetAddressOf());
-			d3d11.pD3DDeviceContext->PSSetConstantBuffers(3, 1, material.pMaterialCb.GetAddressOf());
+			d3d11.pD3DDeviceContext->VSSetConstantBuffers(0, 1, material.pMaterialCb.GetAddressOf());
+			d3d11.pD3DDeviceContext->PSSetConstantBuffers(0, 1, material.pMaterialCb.GetAddressOf());
 
 			if (material.pSRV != nullptr)
 			{
 				d3d11.pD3DDeviceContext->PSSetShaderResources(0, 1, material.pSRV.GetAddressOf());
 				d3d11.pD3DDeviceContext->PSSetSamplers(0, 1, material.pSampler.GetAddressOf());
+
+				d3d11.pD3DDeviceContext->PSSetShader(ppsTex->GetShader(), nullptr, 0);
+			}
+			else
+			{
+				d3d11.pD3DDeviceContext->PSSetShader(ppsVertexColor->GetShader(), nullptr, 0);
 			}
 
 			//Draw
@@ -456,13 +459,13 @@ void DrawSystem::RenderInstancing(vector<GraphicsComponent*>& pGClist, int refCn
 
 		CBMATRIX_INSTANCING*	cbFBX = (CBMATRIX_INSTANCING*)MappedResource.pData;
 
-		XMMATRIX _view	= XMLoadFloat4x4(&Camera::Instance().view);
-		XMMATRIX _proj	= XMLoadFloat4x4(&Camera::Instance().proj);
+		XMMATRIX _view = XMLoadFloat4x4(&Camera::Instance().view);
+		XMMATRIX _proj = XMLoadFloat4x4(&Camera::Instance().proj);
 		XMMATRIX _local = XMLoadFloat4x4(&mesh.mLocal);
 
 		// 左手系
-		cbFBX->mView  = Camera::Instance().view;
-		cbFBX->mProj  = Camera::Instance().proj;
+		cbFBX->mView = Camera::Instance().view;
+		cbFBX->mProj = Camera::Instance().proj;
 		cbFBX->mLocal = mesh.mLocal;
 
 		d3d11.pD3DDeviceContext->Unmap(pcBufferInstance.Get(), 0);
@@ -527,13 +530,19 @@ void DrawSystem::RenderInstancing(vector<GraphicsComponent*>& pGClist, int refCn
 			if (material.pMaterialCb)
 				d3d11.pD3DDeviceContext->UpdateSubresource(material.pMaterialCb.Get(), 0, nullptr, &material.materialConstantData, 0, 0);
 
-			d3d11.pD3DDeviceContext->VSSetConstantBuffers(3, 1, material.pMaterialCb.GetAddressOf());
-			d3d11.pD3DDeviceContext->PSSetConstantBuffers(3, 1, material.pMaterialCb.GetAddressOf());
+			d3d11.pD3DDeviceContext->VSSetConstantBuffers(0, 1, material.pMaterialCb.GetAddressOf());
+			d3d11.pD3DDeviceContext->PSSetConstantBuffers(0, 1, material.pMaterialCb.GetAddressOf());
 
 			if (material.pSRV != nullptr)
 			{
 				d3d11.pD3DDeviceContext->PSSetShaderResources(0, 1, material.pSRV.GetAddressOf());
 				d3d11.pD3DDeviceContext->PSSetSamplers(0, 1, material.pSampler.GetAddressOf());
+
+				d3d11.pD3DDeviceContext->PSSetShader(ppsTex->GetShader(), nullptr, 0);
+			}
+			else
+			{
+				d3d11.pD3DDeviceContext->PSSetShader(ppsVertexColor->GetShader(), nullptr, 0);
 			}
 
 			//Draw

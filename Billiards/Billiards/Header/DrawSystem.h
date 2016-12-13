@@ -87,9 +87,8 @@ private:
 	VertexShader*	pvsFBXInstancing = nullptr;
 	VertexShader*	pvsFBXAnimation = nullptr;
 	VertexShader*	pvsFBXAnimInstancing = nullptr;
-	PixelShader*	ppsFBX = nullptr;
 	PixelShader*	ppsVertexColor = nullptr;
-	PixelShader*	ppsFBXAnimation = nullptr;
+	PixelShader*	ppsTex = nullptr;
 
 	ComPtr<ID3D11InputLayout> pInputLayoutStaticMesh = nullptr;
 	ComPtr<ID3D11InputLayout> pInputLayoutAnimation = nullptr;
@@ -109,7 +108,7 @@ private:
 	XMFLOAT4X4 view;
 	XMFLOAT4X4 proj;
 
-	void Render(GraphicsComponent* pGC,bool isAnim);
+	void Render(GraphicsComponent* pGC, bool isAnim);
 	void RenderInstancing(vector<GraphicsComponent*>& pGClist, int refCnt, bool isAnim);
 
 	void SetMatrix(vector<GraphicsComponent*>& pGClist);
@@ -133,5 +132,5 @@ public:
 	// ƒŠƒXƒg‚É“o˜^‚³‚ê‚½ƒ^ƒXƒN‚ð•`‰æ‚·‚é
 	virtual bool Draw();
 
-	void AddDrawList(DRAW_PRIOLITY priolity, const string& tag,GraphicsComponent* pGC);
+	void AddDrawList(DRAW_PRIOLITY priolity, const string& tag, GraphicsComponent* pGC);
 };
