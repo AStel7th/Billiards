@@ -11,7 +11,7 @@ MainCamera::MainCamera() : GameObject()
 
 	pInputComponent = NEW MainCameraInput(this);
 
-	Camera::Instance().SetView(XMFLOAT3(0.0f, 300.0f, -150.0f), XMFLOAT3(0.0f, 40.0f, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f));
+	Camera::Instance().SetView(XMFLOAT3(-600.0f, 150.0f, 200.0f), XMFLOAT3(200.0f, 80.0f, -400.0f), XMFLOAT3(0.0f, 1.0f, 0.0f));
 	Camera::Instance().SetProj(RADIAN(60.0f), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 1.0f, 2000.0f);
 }
 
@@ -37,7 +37,7 @@ MainCameraInput::MainCameraInput(GameObject * pObj) : InputComponent(), whiteBal
 
 	camState = Title;
 
-	moveSpeed = 3.0f;
+	moveSpeed = 5.0f;
 
 	startPos = XMFLOAT3(-600.0f, 150.0f, 200.0f);
 	startAt = XMFLOAT3(200.0f, 80.0f, -400.0f);
@@ -65,7 +65,7 @@ void MainCameraInput::Update()
 		MovePosition(nowPos, startPos, cameraPos);
 		MovePosition(nowAt, startAt, cameraAt);
 	}
-
+		break;
 	case CameraState::TurnChange:
 	{
 		XMFLOAT3 nowPos = XMFLOAT3(Camera::Instance().m_eye.x, Camera::Instance().m_eye.y, Camera::Instance().m_eye.z);

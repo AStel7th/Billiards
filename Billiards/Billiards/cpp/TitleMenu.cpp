@@ -1,6 +1,7 @@
 #include "../Header/TitleMenu.h"
 #include "../Header/Game.h"
 #include "../Header/Messenger.h"
+#include "../Header/InputDeviceManager.h"
 
 TitleMenu::TitleMenu() : GameObject()
 {
@@ -54,5 +55,6 @@ void TitleMenu::GoToGame(GAME_STATE state)
 		pStartButton->SetActive(true);
 		pExitButton->SetActive(true);
 		this->SetActive(true);
+		InputDeviceManager::Instance().CursorVisible(true);
 	}
 }
