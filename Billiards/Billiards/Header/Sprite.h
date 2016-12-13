@@ -3,27 +3,36 @@
 #include <map>
 #include <list>
 #include <locale.h>
-
-class GraphicsPipeline;
+#include "Shader.h"
 
 //====================================================================
 //  スプライト関連
 //====================================================================
 
 // テクスチャの情報
-struct TextureInfo {
+class TextureInfo 
+{
+public:
 	TexMetadata metadata;
 	ScratchImage image;    // テクスチャへのポインタ
-	map<int, XMFLOAT4> uvrect;            // uv記憶
+	XMFLOAT4 uvrect;            // uv記憶
+
+	TextureInfo();
+	TextureInfo(const TextureInfo& r);
+	virtual ~TextureInfo();
+
+	TextureInfo &operator =(const TextureInfo &r);
+
+	void AddUV(int texNum, int left, int top, int width, int height, int uvid);// UV設定するお texNum:設定するテクスチャID left:基点のx座標 top:基点のy座標 width:幅 height:高さ uvid:登録するuv番号
 };
 
 // テクスチャまとめたクラス
-class TextureContainer{
-	map<int, TextureInfo> data; // 読み込んだデータ
+class TextureContainer {
+	map<const WCHAR*, TextureInfo> data; // 読み込んだデータ
 protected:
 	TextureContainer();
 public:
-	
+
 	// シングルトンオブジェクトを取得
 	static TextureContainer &Instance()
 	{
@@ -32,9 +41,7 @@ public:
 	}
 
 	virtual ~TextureContainer();
-	int LoadTexture(const WCHAR* t_pTextureName, int texNum);   // テクスチャを読み込みます。 t_pTextureName：ファイル名　texNum:識別ID
-	bool AddUV(int texNum, int left, int top, int width, int height, int uvid);// UV設定するお texNum:設定するテクスチャID left:基点のx座標 top:基点のy座標 width:幅 height:高さ uvid:登録するuv番号
-	TextureInfo* GetTexture(int texNum);
+	TextureInfo LoadTexture(const WCHAR* t_pTextureName);   // テクスチャを読み込みます。 t_pTextureName：ファイル名　texNum:識別ID
 
 private:
 
@@ -55,7 +62,7 @@ class Sprite
 		XMFLOAT2 Position;    // スクリーン座標系上での表示位置
 		XMFLOAT2 TexelOffset; // テクスチャー上のテクセル位置を指定するオフセット値
 
-		_CONSTANT_BUFFER(){};
+		_CONSTANT_BUFFER() {};
 		_CONSTANT_BUFFER(XMFLOAT2 position, XMFLOAT2 texelOffset)
 		{
 			::CopyMemory(&Position, &position, sizeof(XMFLOAT2));
@@ -66,8 +73,8 @@ class Sprite
 	// 定数バッファの定義
 	typedef struct _OBJ_BUFFER
 	{
-		XMMATRIX World;
-		XMMATRIX Proj;
+		XMFLOAT4X4 World;
+		XMFLOAT4X4 Proj;
 		FLOAT Uv_left;
 		FLOAT Uv_top;
 		FLOAT Uv_width;
@@ -83,8 +90,11 @@ class Sprite
 
 	static list<Sprite*> drawObjectList;		// 描画対象リスト
 
-	// シェーダー用定数バッファ
+												// シェーダー用定数バッファ
 	static ComPtr<ID3D11Buffer> m_pObjBuffers;
+
+	//インプットレイアウト
+	static ComPtr<ID3D11InputLayout> pInputLayout;
 
 	// シェーダーリソースビュー
 	ComPtr<ID3D11ShaderResourceView> m_pSRView;
@@ -92,7 +102,8 @@ class Sprite
 	// サンプラーステート
 	static ComPtr<ID3D11SamplerState> m_pSamplerState;
 
-	static unique_ptr<GraphicsPipeline> m_pGraphicsPipeline;
+	static unique_ptr<VertexShader> pVertexShader;
+	static unique_ptr<PixelShader> pPixelShader;
 
 	TextureInfo* tex;		// テクスチャ
 	shared_ptr<TextureInfo> subtex;		// テクスチャ
@@ -109,7 +120,7 @@ class Sprite
 	float SubuvLeft, SubuvTop;	// subUV左上座標
 	float SubuvW, SubuvH;			// subUV幅高
 
-	// コピー
+									// コピー
 	void copy(const Sprite &r);
 
 public:
@@ -129,40 +140,40 @@ public:
 	static void end_last();
 
 	// テクスチャ設定
-	void setTexture(TextureInfo* tex);
+	void SetTexture(TextureInfo* tex);
 
-	void setSubTexture(TextureInfo* tex);
+	void SetSubTexture(TextureInfo* tex);
 
 	// 板ポリサイズ指定
-	void setSize(int w, int h);
-	void getSize(int* w, int* h);
+	void SetSize(int w, int h);
+	void GetSize(int* w, int* h);
 
 	// スクリーンサイズ指定
-	void setScreenSize(int w, int h);
+	void SetScreenSize(int w, int h);
 
 	// ピボット指定
-	void setPivot(float x, float y);
+	void SetPivot(float x, float y);
 
 	// 姿勢指定
-	void setPos(float x, float y);
-	void getPos(float* x, float* y);
-	XMFLOAT2* getPos(){ return &XMFLOAT2(posX, posY); };
-	void setRotate(float deg);
-	float getRotate();
-	void setScale(float sx, float sy);
+	void SetPos(float x, float y);
+	void GetPos(float* x, float* y);
+	XMFLOAT2* GetPos() { return &XMFLOAT2(posX, posY); };
+	void SetRotate(float deg);
+	float GetRotate();
+	void SetScale(float sx, float sy);
 
 	// UV切り取り指定
-	void setUV(float l, float t, float w, float h);
+	void SetUV(float l, float t, float w, float h);
 	// UV切り取り指定
-	void setSubUV(float l, float t, float w, float h);
+	void SetSubUV(float l, float t, float w, float h);
 
 	// α設定
-	void setColor(XMFLOAT4& a);
-	XMFLOAT4& getColor();
+	void SetColor(XMFLOAT4& a);
+	XMFLOAT4& GetColor();
 
 	// プライオリティ設定
-	void setPriority(float z);
-	float getPriority();
+	void SetPriority(float z);
+	float GetPriority();
 
 	// 描画リストに追加
 	void Draw();
