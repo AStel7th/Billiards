@@ -71,16 +71,16 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(DXSDK_DIR)Lib\x86</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(DXSDK_DIR)Lib\x86</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -93,7 +93,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2017.0.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2017.0.1\include;$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -131,7 +131,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2017.0.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2017.0.1\include;$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -183,6 +183,7 @@
     <ClCompile Include="cpp\GameObject.cpp" />
     <ClCompile Include="cpp\GraphicsPipeline.cpp" />
     <ClCompile Include="cpp\HandBall.cpp" />
+    <ClCompile Include="cpp\House.cpp" />
     <ClCompile Include="cpp\InputDeviceManager.cpp" />
     <ClCompile Include="cpp\Layer.cpp" />
     <ClCompile Include="cpp\main.cpp" />
@@ -197,6 +198,7 @@
     <ClCompile Include="cpp\Sprite.cpp" />
     <ClCompile Include="cpp\TimeControl.cpp" />
     <ClCompile Include="cpp\DebugFont.cpp" />
+    <ClCompile Include="cpp\TitleMenu.cpp" />
     <ClCompile Include="cpp\WaveFileLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -205,6 +207,7 @@
     <ClInclude Include="Header\BallComponents.h" />
     <ClInclude Include="Header\BilliardsTable.h" />
     <ClInclude Include="Header\BilliardsTableComponents.h" />
+    <ClInclude Include="Header\Button.h" />
     <ClInclude Include="Header\Camera.h" />
     <ClInclude Include="Header\Collider.h" />
     <ClInclude Include="Header\Collision.h" />
@@ -214,6 +217,7 @@
     <ClInclude Include="Header\Event.h" />
     <ClInclude Include="Header\GameState.h" />
     <ClInclude Include="Header\HandBall.h" />
+    <ClInclude Include="Header\House.h" />
     <ClInclude Include="Header\InputDeviceManager.h" />
     <ClInclude Include="Header\FBXInitialize.h" />
     <ClInclude Include="Header\FBXLoader.h" />
@@ -240,6 +244,7 @@
     <ClInclude Include="Header\Sprite.h" />
     <ClInclude Include="Header\TimeControl.h" />
     <ClInclude Include="Header\DebugFont.h" />
+    <ClInclude Include="Header\TitleMenu.h" />
     <ClInclude Include="Header\WaveFileLoader.h" />
     <ClInclude Include="HLSL\DebugFont_PS_Main.h" />
     <ClInclude Include="HLSL\DebugFont_VS_Main.h" />
@@ -302,6 +307,14 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="HLSL\SimpleRenderTexPS.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PS</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PS</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="HLSL\simpleRenderVS.hlsl">
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">vs_main</EntryPointName>
