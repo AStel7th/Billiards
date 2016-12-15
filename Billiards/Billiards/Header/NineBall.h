@@ -5,15 +5,22 @@
 
 using namespace std;
 
+class SoundPlayer;
+
 class NineBall : public GameObject
 {
 private:
 	GAME_STATE nowState;
-	map<string, bool> ballList;
+	map<GameObject*, bool> ballList;
+	SoundPlayer* pBGM;
+	GameObject* nextTargetBall;
+	bool isFirstHit;
+
+	int playerTurn;
 
 	void GameStart();
 
-	void ShotPhase();
+	void GameStateRequest(GAME_STATE state);
 
 	bool IsBallMoving();
 
@@ -21,7 +28,7 @@ private:
 
 	void IdentifyBall(GameObject* pBall);
 
-	void IdentifyBallSet();
+	void FirstHit(GameObject* pBall);
 public:
 	NineBall();
 	virtual ~NineBall();

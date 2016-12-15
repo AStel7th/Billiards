@@ -31,13 +31,33 @@ public:
 		}
 	}
 
-	static Event<void()> OnShot;
+	static Event<void(GAME_STATE , int)> OnTurnChange;
 
-	static void Shot()
+	static void TurnChange(GAME_STATE s, int playerNum)
 	{
-		if (OnShot.GetEventCount() != 0)
+		if (OnTurnChange.GetEventCount() != 0)
 		{
-			OnShot();
+			OnTurnChange(s,playerNum);
+		}
+	}
+
+	static Event<void(int)> OnGameFinish;
+
+	static void GameFinish(int playerNum)
+	{
+		if (OnGameFinish.GetEventCount() != 0)
+		{
+			OnGameFinish(playerNum);
+		}
+	}
+
+	static Event<void(GAME_STATE)> OnGameStateRequest;
+
+	static void GameStateRequest(GAME_STATE state)
+	{
+		if (OnGameStateRequest.GetEventCount() != 0)
+		{
+			OnGameStateRequest(state);
 		}
 	}
 
@@ -61,13 +81,13 @@ public:
 		}
 	}
 
-	static Event<void()> isBallSetDone;
+	static Event<void(GameObject*)> FirstHitBall;
 
-	static void BallSetDone()
+	static void SetFirstHitBall(GameObject* pBall)
 	{
-		if (isBallSetDone.GetEventCount() != 0)
+		if (FirstHitBall.GetEventCount() != 0)
 		{
-			isBallSetDone();
+			FirstHitBall(pBall);
 		}
 	}
 };

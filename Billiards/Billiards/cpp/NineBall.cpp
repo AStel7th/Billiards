@@ -9,8 +9,11 @@
 #include "../Header/House.h"
 #include "../Header/TitleMenu.h"
 #include "../Header/InputDeviceManager.h"
+#include "../Header/ResourceManager.h"
+#include "../Header/AudioSystem.h"
+#include "../Header/InGameUI.h"
 
-NineBall::NineBall() : GameObject()
+NineBall::NineBall() : GameObject(), pBGM(nullptr), nextTargetBall(nullptr)
 {
 	SetName("NineBall");
 	SetTag("NineBall");
@@ -22,59 +25,56 @@ NineBall::NineBall() : GameObject()
 	Create<TitleMenu>();
 	Create<House>();
 	Create<BilliardsTable>();
-	ballList[Create<HandBall>(61.5f, 78.0f, 0.0f)->name]	= false;
-	ballList[Create<Ball>(1, 9.8f, 78.0f, 0.0f)->name]	= false;
-	ballList[Create<Ball>(2, 0.0f, 78.0f, 5.8f)->name]	= false;
-	ballList[Create<Ball>(3, -9.8f, 78.0f, 0.0f)->name]	= false;
-	ballList[Create<Ball>(4, 0.0f, 78.0f, -5.8f)->name]	= false;
-	ballList[Create<Ball>(5, 4.9f, 78.0f, -2.9f)->name]	= false;
-	ballList[Create<Ball>(6, 4.9f, 78.0f, 2.9f)->name]	= false;
-	ballList[Create<Ball>(7, -4.9f, 78.0f, -2.9f)->name] = false;
-	ballList[Create<Ball>(8, -4.9f, 78.0f, 2.9f)->name]	= false;
-	ballList[Create<Ball>(9, 0.0f, 78.0f, 0.0f)->name]	= false;		//TODO::中央に設置すると、2つのポリゴンから衝突分の反射ベクトルが返ってくるため修正する
+	ballList[Create<HandBall>(61.5f, 78.0f, 0.0f)]	= false;
+	ballList[Create<Ball>(1, 9.8f, 78.0f, 0.0f)]	= false;
+	ballList[Create<Ball>(2, 0.0f, 78.0f, 5.8f)]	= false;
+	ballList[Create<Ball>(3, -9.8f, 78.0f, 0.0f)]	= false;
+	ballList[Create<Ball>(4, 0.0f, 78.0f, -5.8f)]	= false;
+	ballList[Create<Ball>(5, 4.9f, 78.0f, -2.9f)]	= false;
+	ballList[Create<Ball>(6, 4.9f, 78.0f, 2.9f)]	= false;
+	ballList[Create<Ball>(7, -4.9f, 78.0f, -2.9f)] = false;
+	ballList[Create<Ball>(8, -4.9f, 78.0f, 2.9f)]	= false;
+	ballList[Create<Ball>(9, 0.0f, 78.0f, 0.0f)]	= false;		//TODO::中央に設置すると、2つのポリゴンから衝突分の反射ベクトルが返ってくるため修正する
 	Create<CuesController>();
 	Create<MainCamera>();
+	Create<PlayerTurnUI>(1);
+	Create<PlayerTurnUI>(2);
+	Create<FoulUI>();
+
+	WaveFileLoader* data;
+	ResourceManager::Instance().GetResource(&data, "GameBGM", "Resource/Sound/BGM.wav");
+	pBGM = NEW SoundPlayer();
+	pBGM->Create(data, true);
+	pBGM->Play();
+
+	playerTurn = 1;
+
+	nextTargetBall = GameObject::All::GameObjectFindWithName("Ball1");
+
+	isFirstHit = false;
 
 	Messenger::OnGameStart.Add(*this, &NineBall::GameStart);
-	Messenger::OnShot.Add(*this, &NineBall::ShotPhase);
+	Messenger::OnGameStateRequest.Add(*this, &NineBall::GameStateRequest);
 	Messenger::BallMovement.Add(*this, &NineBall::isBallMovement);
 	Messenger::BallInPocket.Add(*this, &NineBall::IdentifyBall);
-	Messenger::isBallSetDone.Add(*this, &NineBall::IdentifyBallSet);
+	Messenger::FirstHitBall.Add(*this, &NineBall::FirstHit);
 }
 
 NineBall::~NineBall()
 {
+	pBGM->Stop();
+	SAFE_DELETE(pBGM);
+
 	Messenger::OnGameStart.Remove(*this, &NineBall::GameStart);
-	Messenger::OnShot.Remove(*this, &NineBall::ShotPhase);
+	Messenger::OnGameStateRequest.Remove(*this, &NineBall::GameStateRequest);
 	Messenger::BallMovement.Remove(*this, &NineBall::isBallMovement);
 	Messenger::BallInPocket.Remove(*this, &NineBall::IdentifyBall);
-	Messenger::isBallSetDone.Remove(*this, &NineBall::IdentifyBallSet);
+	Messenger::FirstHitBall.Remove(*this, &NineBall::FirstHit);
 }
 
 void NineBall::Update()
 {
-	TCHAR s[256];
 
-	switch (nowState)
-	{
-	case GAME_STATE::Title:
-		_stprintf_s(s, _T("Title\n"));
-		break;
-	case GAME_STATE::Shot:
-		_stprintf_s(s, _T("Shot\n"));
-		break;
-	case GAME_STATE::DecideOrder:
-		_stprintf_s(s, _T("Decide\n"));
-		break;
-	case GAME_STATE::BallSet:
-		_stprintf_s(s, _T("BallSet\n"));
-		break;
-	case GAME_STATE::BallMovement:
-		_stprintf_s(s, _T("BallMovement\n"));
-		break;
-	}
-
-	OutputDebugString(s);
 }
 
 bool NineBall::IsBallMoving()
@@ -92,19 +92,30 @@ void NineBall::GameStart()
 {
 	nowState = GAME_STATE::DecideOrder;
 	Messenger::GamePhase(nowState);
+	Messenger::TurnChange(nowState,playerTurn);
 	InputDeviceManager::Instance().CursorVisible(false);
 }
 
-void NineBall::ShotPhase()
+void NineBall::GameStateRequest(GAME_STATE state)
 {
-	/*nowState = GAME_STATE::BallMovement;
-	Messenger::GamePhase(nowState);*/
+	nowState = state;
+	Messenger::GamePhase(nowState);
+
+	if (state == GAME_STATE::FoulFromDecide || state == GAME_STATE::DecideOrder)
+	{
+		if (playerTurn > 1)
+			playerTurn = 1;
+		else
+			playerTurn = 2;
+
+		Messenger::TurnChange(nowState,playerTurn);
+	}
 }
 
-
+//ボールが動いているか確認
 void NineBall::isBallMovement(GameObject * pBall,bool flg)
 {
-	auto it = ballList.find(pBall->name);
+	auto it = ballList.find(pBall);
 
 	if (it != ballList.end())
 	{
@@ -113,10 +124,38 @@ void NineBall::isBallMovement(GameObject * pBall,bool flg)
 
 	if (!IsBallMoving())
 	{
-		if (nowState != GAME_STATE::Title && nowState != GAME_STATE::Shot && nowState != GAME_STATE::BallSet)
+		if (nowState == GAME_STATE::BallMovement)
 		{
-			nowState = GAME_STATE::Shot;
-			Messenger::GamePhase(nowState);
+			if (!isFirstHit)
+			{
+				nowState = GAME_STATE::DecideOrder;
+				Messenger::GamePhase(nowState);
+
+				if (playerTurn > 1)
+					playerTurn = 1;
+				else
+					playerTurn = 2;
+
+				Messenger::TurnChange(nowState, playerTurn);
+			}
+			else
+			{
+				nowState = GAME_STATE::Shot;
+				Messenger::GamePhase(nowState);
+			}
+
+			if(!nextTargetBall->isActive())
+			{
+				for each (pair<GameObject*, bool> var in ballList)
+				{
+					if (var.second == true)
+					{
+						nextTargetBall = var.first;
+					}
+				}
+			}
+
+			isFirstHit = false;
 		}
 	}
 	else
@@ -129,17 +168,29 @@ void NineBall::isBallMovement(GameObject * pBall,bool flg)
 	}
 }
 
+//ポケットに入ったボール確認
 void NineBall::IdentifyBall(GameObject * pBall)
 {
 	if (pBall->name == "HandBall")
 	{
-		nowState = GAME_STATE::BallSet;
+		nowState = GAME_STATE::FoulInPocket;
 		Messenger::GamePhase(nowState);
+	}
+
+	if (pBall->name == "Ball9")
+	{
+		Messenger::GameFinish(playerTurn);
 	}
 }
 
-void NineBall::IdentifyBallSet()
+//最初にヒットしたボール確認
+void NineBall::FirstHit(GameObject * pBall)
 {
-	nowState = GAME_STATE::Shot;
-	Messenger::GamePhase(nowState);
+	isFirstHit = true;
+
+	if (pBall->name != nextTargetBall->name)
+	{
+		nowState = GAME_STATE::FoulAnotherBall;
+		Messenger::GamePhase(nowState);
+	}
 }
