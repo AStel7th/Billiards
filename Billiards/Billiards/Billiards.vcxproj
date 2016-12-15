@@ -184,6 +184,7 @@
     <ClCompile Include="cpp\GraphicsPipeline.cpp" />
     <ClCompile Include="cpp\HandBall.cpp" />
     <ClCompile Include="cpp\House.cpp" />
+    <ClCompile Include="cpp\InGameUI.cpp" />
     <ClCompile Include="cpp\InputDeviceManager.cpp" />
     <ClCompile Include="cpp\Layer.cpp" />
     <ClCompile Include="cpp\main.cpp" />
@@ -218,6 +219,7 @@
     <ClInclude Include="Header\GameState.h" />
     <ClInclude Include="Header\HandBall.h" />
     <ClInclude Include="Header\House.h" />
+    <ClInclude Include="Header\InGameUI.h" />
     <ClInclude Include="Header\InputDeviceManager.h" />
     <ClInclude Include="Header\FBXInitialize.h" />
     <ClInclude Include="Header\FBXLoader.h" />
