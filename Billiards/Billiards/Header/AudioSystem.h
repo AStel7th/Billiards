@@ -12,11 +12,12 @@ class WaveFileLoader;
 class AudioSystem
 {
 private:
-	IXAudio2* pXAudio2;
 	IXAudio2MasteringVoice* pMasteringVoice;
 protected:
 	AudioSystem();
 public:
+	IXAudio2* pXAudio2;
+
 	virtual ~AudioSystem();
 
 	static AudioSystem& Instance()
@@ -26,20 +27,23 @@ public:
 	}
 
 	HRESULT Create();
-
-	void Play(WaveFileLoader* data);
 };
 
 class SoundPlayer
 {
 private:
+	IXAudio2SourceVoice* pSourceVoice;
 	WaveFileLoader* soundData;
+	XAUDIO2_BUFFER* buffer;
+	BYTE* pbWaveData;
 public:
 	SoundPlayer();
 
 	virtual ~SoundPlayer();
 
-	void Create(WaveFileLoader* pData);
+	void Create(WaveFileLoader* pData, bool loop = false);
 
 	void Play();
+
+	void Stop();
 };

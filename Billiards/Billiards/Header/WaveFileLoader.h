@@ -21,6 +21,7 @@ public:
 	BYTE* m_pbDataCur;
 	ULONG m_ulDataSize;
 	CHAR* m_pResourceBuffer;
+	BYTE* pbWaveData;
 protected:
 	HRESULT ReadMMIO();
 	HRESULT WriteMMIO(WAVEFORMATEX* pwfxDest);
@@ -43,9 +44,9 @@ public:
 		return m_pwfx;
 	};
 
-	CHAR* GetData()
+	BYTE* GetData()
 	{
-		return m_pResourceBuffer;
+		return pbWaveData;
 	}
 
 };

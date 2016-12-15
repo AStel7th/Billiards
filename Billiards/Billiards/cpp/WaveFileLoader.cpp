@@ -2,16 +2,19 @@
 
 WaveFileLoader::WaveFileLoader()
 {
-	m_pwfx = NULL;
-	m_hmmio = NULL;
-	m_pResourceBuffer = NULL;
+	m_pwfx = nullptr;
+	m_hmmio = nullptr;
+	m_pResourceBuffer = nullptr;
 	m_dwSize = 0;
 	m_bIsReadingFromMemory = FALSE;
+	pbWaveData = nullptr;
 }
 
 WaveFileLoader::~WaveFileLoader()
 {
 	Close();
+
+	SAFE_DELETE(pbWaveData);
 
 	if (!m_bIsReadingFromMemory)
 		SAFE_DELETE_ARRAY(m_pwfx);
@@ -30,7 +33,7 @@ HRESULT WaveFileLoader::Open(LPWSTR strFileName, WAVEFORMATEX* pwfx, DWORD dwFla
 			return E_INVALIDARG;
 		SAFE_DELETE_ARRAY(pwfx);
 
-		m_hmmio = mmioOpen(strFileName, NULL, MMIO_ALLOCBUF | MMIO_READ);
+		m_hmmio = mmioOpen(strFileName, nullptr, MMIO_ALLOCBUF | MMIO_READ);
 
 		if (nullptr == m_hmmio)
 		{
@@ -100,6 +103,12 @@ HRESULT WaveFileLoader::Open(LPWSTR strFileName, WAVEFORMATEX* pwfx, DWORD dwFla
 			return hr;
 	}
 
+	DWORD size = m_dwSize;
+
+	pbWaveData = NEW BYTE[m_dwSize];
+
+	Read(pbWaveData, size, &size);
+
 	return hr;
 }
 
@@ -125,9 +134,9 @@ HRESULT WaveFileLoader::ReadMMIO()
 
 	memset(&ckIn, 0, sizeof(ckIn));
 
-	m_pwfx = NULL;
+	m_pwfx = nullptr;
 
-	if ((0 != mmioDescend(m_hmmio, &m_ckRiff, NULL, 0)))
+	if ((0 != mmioDescend(m_hmmio, &m_ckRiff, nullptr, 0)))
 		return E_FAIL;
 
 	// Check to make sure this is a valid wave file
@@ -155,7 +164,7 @@ HRESULT WaveFileLoader::ReadMMIO()
 	if (pcmWaveFormat.wf.wFormatTag == WAVE_FORMAT_PCM)
 	{
 		m_pwfx = (WAVEFORMATEX*)NEW CHAR[sizeof(WAVEFORMATEX)];
-		if (NULL == m_pwfx)
+		if (nullptr == m_pwfx)
 			return E_FAIL;
 
 		// Copy the bytes from the pcm structure to the waveformatex structure
@@ -170,7 +179,7 @@ HRESULT WaveFileLoader::ReadMMIO()
 			return E_FAIL;
 
 		m_pwfx = (WAVEFORMATEX*)NEW CHAR[sizeof(WAVEFORMATEX) + cbExtraBytes];
-		if (NULL == m_pwfx)
+		if (nullptr == m_pwfx)
 			return E_FAIL;
 
 		// Copy the bytes from the pcm structure to the waveformatex structure
@@ -220,7 +229,7 @@ HRESULT WaveFileLoader::ResetFile()
 	}
 	else
 	{
-		if (m_hmmio == NULL)
+		if (m_hmmio == nullptr)
 			return CO_E_NOTINITIALIZED;
 
 		if (m_dwFlags == WAVEFILE_READ)
@@ -265,9 +274,9 @@ HRESULT WaveFileLoader::Read(BYTE* pBuffer, DWORD dwSizeToRead, DWORD* pdwSizeRe
 {
 	if (m_bIsReadingFromMemory)
 	{
-		if (m_pbDataCur == NULL)
+		if (m_pbDataCur == nullptr)
 			return CO_E_NOTINITIALIZED;
-		if (pdwSizeRead != NULL)
+		if (pdwSizeRead != nullptr)
 			*pdwSizeRead = 0;
 
 		if ((BYTE*)(m_pbDataCur + dwSizeToRead) >
@@ -282,7 +291,7 @@ HRESULT WaveFileLoader::Read(BYTE* pBuffer, DWORD dwSizeToRead, DWORD* pdwSizeRe
 #pragma warning( default: 22104 )
 #pragma warning( default: 4616 )
 
-		if (pdwSizeRead != NULL)
+		if (pdwSizeRead != nullptr)
 			*pdwSizeRead = dwSizeToRead;
 
 		return S_OK;
@@ -291,9 +300,9 @@ HRESULT WaveFileLoader::Read(BYTE* pBuffer, DWORD dwSizeToRead, DWORD* pdwSizeRe
 	{
 		MMIOINFO mmioinfoIn; // current status of m_hmmio
 
-		if (m_hmmio == NULL)
+		if (m_hmmio == nullptr)
 			return CO_E_NOTINITIALIZED;
-		if (pBuffer == NULL || pdwSizeRead == NULL)
+		if (pBuffer == nullptr || pdwSizeRead == nullptr)
 			return E_INVALIDARG;
 
 		*pdwSizeRead = 0;
@@ -342,10 +351,10 @@ HRESULT WaveFileLoader::Close()
 {
 	if (m_dwFlags == WAVEFILE_READ)
 	{
-		if (m_hmmio != NULL)
+		if (m_hmmio != nullptr)
 		{
 			mmioClose(m_hmmio, 0);
-			m_hmmio = NULL;
+			m_hmmio = nullptr;
 		}
 		SAFE_DELETE_ARRAY(m_pResourceBuffer);
 	}
@@ -353,7 +362,7 @@ HRESULT WaveFileLoader::Close()
 	{
 		m_mmioinfoOut.dwFlags |= MMIO_DIRTY;
 
-		if (m_hmmio == NULL)
+		if (m_hmmio == nullptr)
 			return CO_E_NOTINITIALIZED;
 
 		if (0 != mmioSetInfo(m_hmmio, &m_mmioinfoOut, 0))
@@ -370,7 +379,7 @@ HRESULT WaveFileLoader::Close()
 
 		mmioSeek(m_hmmio, 0, SEEK_SET);
 
-		if (0 != (INT)mmioDescend(m_hmmio, &m_ckRiff, NULL, 0))
+		if (0 != (INT)mmioDescend(m_hmmio, &m_ckRiff, nullptr, 0))
 			return E_FAIL;
 
 		m_ck.ckid = mmioFOURCC('f', 'a', 'c', 't');
@@ -388,7 +397,7 @@ HRESULT WaveFileLoader::Close()
 			return E_FAIL;
 
 		mmioClose(m_hmmio, 0);
-		m_hmmio = NULL;
+		m_hmmio = nullptr;
 	}
 
 	return S_OK;
@@ -478,9 +487,9 @@ HRESULT WaveFileLoader::Write(UINT nSizeToWrite, BYTE* pbSrcData, UINT* pnSizeWr
 
 	if (m_bIsReadingFromMemory)
 		return E_NOTIMPL;
-	if (m_hmmio == NULL)
+	if (m_hmmio == nullptr)
 		return CO_E_NOTINITIALIZED;
-	if (pnSizeWrote == NULL || pbSrcData == NULL)
+	if (pnSizeWrote == nullptr || pbSrcData == nullptr)
 		return E_INVALIDARG;
 
 	*pnSizeWrote = 0;
