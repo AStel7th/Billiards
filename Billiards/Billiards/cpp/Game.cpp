@@ -26,11 +26,6 @@ Game::Game()
 
 	SpaceDivision::Instance().Init(5,XMFLOAT3(-250.0f, -250.0f, -250.0f), XMFLOAT3(250.0f, 250.0f, 250.0f));
 
-	Camera::Instance().SetView(XMFLOAT3(0.0f, 300.0f, -150.0f), XMFLOAT3(0.0f, 40.0f, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f));
-	//Camera::Instance().SetView(XMFLOAT3(1.0f, 200.0f, 0.0f), XMFLOAT3(0.0f, 80.0f, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f));
-	Camera::Instance().SetProj(RADIAN(60.0f), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 1.0f, 2000.0f);
-
-
 	/*EffectManager::Instance().SetView(&Camera::Instance().m_eye, &Camera::Instance().m_at, &Camera::Instance().m_up );
 	EffectManager::Instance().SetProj(Camera::Instance().m_fov, Camera::Instance().m_aspect, Camera::Instance().m_zn, Camera::Instance().m_zf);*/
 

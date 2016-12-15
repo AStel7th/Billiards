@@ -38,7 +38,7 @@ public:
 
 	virtual ~HandBallInput();
 
-	void Update();
+	bool Update();
 
 	void GamePhase(GAME_STATE state);
 

@@ -94,30 +94,6 @@ HRESULT DrawSystem::Init(unsigned int msaaSamples)
 		{ "BONE_WEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	/*D3D11_INPUT_ELEMENT_DESC layout_staticMesh_instance[] =
-	{
-	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "MATRIX",   0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,  0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-	{ "MATRIX",   1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 16, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-	{ "MATRIX",   2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 32, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-	{ "MATRIX",   3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 48, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-	};
-
-	D3D11_INPUT_ELEMENT_DESC layout_Animation_instance[] =
-	{
-	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "BONE_INDEX", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "BONE_WEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "MATRIX",   0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,  0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-	{ "MATRIX",   1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 16, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-	{ "MATRIX",   2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 32, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-	{ "MATRIX",   3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 48, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-	};*/
-
 	// InputLayoutの作成
 	if (FAILED(d3d11.pD3DDevice->CreateInputLayout(layout_Animation, ARRAYSIZE(layout_Animation),
 		pvsFBXAnimation->GetByteCode()->GetBufferPointer(), pvsFBXAnimation->GetByteCode()->GetBufferSize(), &pInputLayoutAnimation)))
@@ -211,6 +187,8 @@ HRESULT DrawSystem::Init(unsigned int msaaSamples)
 	if (FAILED(d3d11.pD3DDevice->CreateShaderResourceView(pTransformStructuredBuffer.Get(), &srvDesc, &pTransformSRV)))
 		return E_FAIL;
 
+	lightPos = XMFLOAT4(100.0f, 200.0f, 100.0f, 0.0f);
+
 	return true;
 }
 
@@ -250,19 +228,6 @@ bool DrawSystem::Draw()
 	d3d11.pD3DDeviceContext->OMSetBlendState(pBlendState.Get(), blendFactors, 0xffffffff);
 	d3d11.pD3DDeviceContext->OMSetDepthStencilState(pDepthStencilState.Get(), 0);
 
-	d3d11.pD3DDeviceContext->VSSetConstantBuffers(0, 1, pcBuffer0.GetAddressOf());
-	//d3d11.pD3DDeviceContext->PSSetConstantBuffers(0, 1, pcBuffer0.GetAddressOf());
-
-	D3D11_MAPPED_SUBRESOURCE pData;
-	if (SUCCEEDED(d3d11.pD3DDeviceContext->Map(pcBuffer0.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &pData)))
-	{
-		SHADER_GLOBAL sg;
-		sg.lightDir = XMFLOAT4(100.0f, 100.0f, 100.0f, 0.0f);
-		sg.eye = XMFLOAT4(Camera::Instance().view._41, Camera::Instance().view._42, Camera::Instance().view._43, 0);
-		memcpy_s(pData.pData, pData.RowPitch, (void*)&sg, sizeof(SHADER_GLOBAL));
-		d3d11.pD3DDeviceContext->Unmap(pcBuffer0.Get(), 0);
-	}
-
 	for (auto it = opaqueDrawList.begin(); it != opaqueDrawList.end(); ++it)
 	{
 		bool isAnim;
@@ -280,14 +245,12 @@ bool DrawSystem::Draw()
 			{
 				d3d11.pD3DDeviceContext->VSSetShader(pvsFBXAnimInstancing->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBufferInstance.GetAddressOf());
-				/*d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);*/
 				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutAnimationInstance.Get());
 			}
 			else
 			{
 				d3d11.pD3DDeviceContext->VSSetShader(pvsFBXInstancing->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBufferInstance.GetAddressOf());
-				//d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutStaticMeshInstance.Get());
 			}
 
@@ -302,14 +265,12 @@ bool DrawSystem::Draw()
 			{
 				d3d11.pD3DDeviceContext->VSSetShader(pvsFBXAnimation->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBuffer1.GetAddressOf());
-				//d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutAnimation.Get());
 			}
 			else
 			{
 				d3d11.pD3DDeviceContext->VSSetShader(pvsFBX->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->VSSetConstantBuffers(1, 1, pcBuffer1.GetAddressOf());
-				//d3d11.pD3DDeviceContext->PSSetShader(ppsFBXAnimation->GetShader(), nullptr, 0);
 				d3d11.pD3DDeviceContext->IASetInputLayout(pInputLayoutStaticMesh.Get());
 			}
 
@@ -345,6 +306,27 @@ void DrawSystem::Render(GraphicsComponent* pGC, bool isAnim)
 	{
 		MESH mesh = pGC->pMeshData->GetMeshList()[j];
 
+		// メッシュ基準のローカル座標系上での平行光源の方向ベクトルを計算する
+		XMMATRIX matInv = XMMatrixInverse(nullptr, XMLoadFloat4x4(&pGC->pGameObject->worldMat));
+		XMVECTOR v = XMVector4Transform(XMLoadFloat4(&lightPos), matInv);
+		XMVECTOR nv = XMVector3Normalize(v);
+		XMFLOAT4 localLightPos;
+		XMStoreFloat4(&localLightPos, nv);
+
+		D3D11_MAPPED_SUBRESOURCE pData;
+		if (SUCCEEDED(d3d11.pD3DDeviceContext->Map(pcBuffer0.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &pData)))
+		{
+			SHADER_GLOBAL sg;
+			sg.lightDir = localLightPos;
+			sg.eye = XMFLOAT4(Camera::Instance().m_eye.x, Camera::Instance().m_eye.y, Camera::Instance().m_eye.z, 0);
+			memcpy_s(pData.pData, pData.RowPitch, (void*)&sg, sizeof(SHADER_GLOBAL));
+			d3d11.pD3DDeviceContext->Unmap(pcBuffer0.Get(), 0);
+		}
+
+		d3d11.pD3DDeviceContext->VSSetConstantBuffers(0, 1, pcBuffer0.GetAddressOf());
+		d3d11.pD3DDeviceContext->PSSetConstantBuffers(0, 1, pcBuffer0.GetAddressOf());
+
+
 		D3D11_MAPPED_SUBRESOURCE MappedResource;
 		d3d11.pD3DDeviceContext->Map(pcBuffer1.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
 
@@ -367,7 +349,6 @@ void DrawSystem::Render(GraphicsComponent* pGC, bool isAnim)
 		pGC->pMeshData->SetAnimationFrame(j, pGC->frame);
 
 		//フレームを進めたことにより変化したポーズ（ボーンの行列）をシェーダーに渡す
-		D3D11_MAPPED_SUBRESOURCE pData;
 		if (SUCCEEDED(d3d11.pD3DDeviceContext->Map(pcBoneBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &pData)))
 		{
 			SHADER_GLOBAL_BONES sg;
@@ -418,8 +399,8 @@ void DrawSystem::Render(GraphicsComponent* pGC, bool isAnim)
 			if (material.pMaterialCb)
 				d3d11.pD3DDeviceContext->UpdateSubresource(material.pMaterialCb.Get(), 0, nullptr, &material.materialConstantData, 0, 0);
 
-			d3d11.pD3DDeviceContext->VSSetConstantBuffers(0, 1, material.pMaterialCb.GetAddressOf());
-			d3d11.pD3DDeviceContext->PSSetConstantBuffers(0, 1, material.pMaterialCb.GetAddressOf());
+			d3d11.pD3DDeviceContext->VSSetConstantBuffers(3, 1, material.pMaterialCb.GetAddressOf());
+			d3d11.pD3DDeviceContext->PSSetConstantBuffers(3, 1, material.pMaterialCb.GetAddressOf());
 
 			if (material.pSRV != nullptr)
 			{
@@ -530,8 +511,8 @@ void DrawSystem::RenderInstancing(vector<GraphicsComponent*>& pGClist, int refCn
 			if (material.pMaterialCb)
 				d3d11.pD3DDeviceContext->UpdateSubresource(material.pMaterialCb.Get(), 0, nullptr, &material.materialConstantData, 0, 0);
 
-			d3d11.pD3DDeviceContext->VSSetConstantBuffers(0, 1, material.pMaterialCb.GetAddressOf());
-			d3d11.pD3DDeviceContext->PSSetConstantBuffers(0, 1, material.pMaterialCb.GetAddressOf());
+			d3d11.pD3DDeviceContext->VSSetConstantBuffers(3, 1, material.pMaterialCb.GetAddressOf());
+			d3d11.pD3DDeviceContext->PSSetConstantBuffers(3, 1, material.pMaterialCb.GetAddressOf());
 
 			if (material.pSRV != nullptr)
 			{

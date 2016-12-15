@@ -24,15 +24,17 @@ inline GameObject* GameObject::_Unregister_(GameObject* pObj)
 	GameObject* next = pObj->pNext; //自身の次
 	GameObject* prev = pObj->pPrev; //自身の前
 
-									//次位置に前位置を代入してつなぎ合わせる
-	if (next != nullptr) next->pPrev = prev;
-	//null の場合は末尾タスクがなくなったので、前のタスクを末尾にする
-	else pEnd = prev;
+	//次位置に前位置を代入してつなぎ合わせる
+	if (next != nullptr) 
+		next->pPrev = prev;
+	else 
+		pEnd = prev;
 
 	//前に次を代入してつなぎ合わせる
-	if (prev != nullptr) prev->pNext = next;
-	//null の場合は先頭タスクがなくなったので、次のタスクを先頭にする
-	else pBegin = next;
+	if (prev != nullptr) 
+		prev->pNext = next;
+	else 
+		pBegin = next;
 
 	if (pObj->childObjectList.size() != 0)
 	{
@@ -53,8 +55,6 @@ GameObject::GameObject() :
 	pos(0.0f, 0.0f, 0.0f), 
 	rot(0.0f, 0.0f, 0.0f), 
 	scale(1.0f, 1.0f, 1.0f),
-	/*local(),
-	world(),*/
 	activeFlg(true),
 	pParent(nullptr)
 {
@@ -100,23 +100,6 @@ XMFLOAT3 GameObject::GetWorldPos()
 {
 	return XMFLOAT3(worldMat._41, worldMat._42, worldMat._43);
 }
-
-//void GameObject::SetWorldPos(XMFLOAT3 & pos)
-//{
-//	worldMat._41 = pos.x;
-//	worldMat._42 = pos.y;
-//	worldMat._43 = pos.z;
-//}
-//
-//void GameObject::SetWorldPos(XMVECTOR & pos)
-//{
-//	XMFLOAT3 p;
-//	XMStoreFloat3(&p, pos);
-//
-//	worldMat._41 = p.x;
-//	worldMat._42 = p.y;
-//	worldMat._43 = p.z;
-//}
 
 void GameObject::SetTag(const string & t)
 {

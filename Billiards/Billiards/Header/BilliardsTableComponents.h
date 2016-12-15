@@ -10,7 +10,7 @@ public:
 	BilliardsTablePhysics(GameObject* pObj);
 	~BilliardsTablePhysics();
 
-	void Update();
+	bool Update();
 };
 
 class BilliardsTableGraphics : public GraphicsComponent
@@ -19,5 +19,5 @@ public:
 	BilliardsTableGraphics(GameObject* pObj, MeshData* mesh);
 	~BilliardsTableGraphics();
 
-	void Update();
+	bool Update();
 };

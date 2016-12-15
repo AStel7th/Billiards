@@ -23,5 +23,5 @@ public:
 	HouseGraphics(GameObject * pObj, MeshData* mesh);
 	virtual ~HouseGraphics();
 
-	void Update();
+	bool Update();
 };

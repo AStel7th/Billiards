@@ -172,6 +172,15 @@ void Sprite::GetSize(int* w, int* h)
 	*h = polyH;
 }
 
+XMINT2 Sprite::GetSize()
+{
+	XMINT2 size;
+	size.x = polyW;
+	size.y = polyH;
+
+	return size;
+}
+
 // スクリーンサイズ指定
 void Sprite::SetScreenSize(int w, int h) {
 	scW = w;
@@ -416,13 +425,17 @@ TextureContainer::~TextureContainer()
 {
 }
 
-TextureInfo TextureContainer::LoadTexture(const WCHAR * t_pTextureName)
+TextureInfo TextureContainer::LoadTexture(const string& t_pTextureName)
 {
 	auto it = data.find(t_pTextureName);
 
 	if (it == data.end())
 	{
-		LoadFromWICFile(t_pTextureName, 0, &data[t_pTextureName].metadata, data[t_pTextureName].image);
+		WCHAR	wstr[512];
+		size_t wLen = 0;
+		mbstowcs_s(&wLen, wstr, t_pTextureName.size() + 1, t_pTextureName.c_str(), _TRUNCATE);
+
+		LoadFromWICFile(wstr, 0, &data[t_pTextureName].metadata, data[t_pTextureName].image);
 
 		return data[t_pTextureName];
 	}

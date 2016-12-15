@@ -51,8 +51,9 @@ PocketPhysics::~PocketPhysics()
 {
 }
 
-void PocketPhysics::Update()
+bool PocketPhysics::Update()
 {
+	return true;
 }
 
 void PocketPhysics::OnCollisionEnter(GameObject * other)

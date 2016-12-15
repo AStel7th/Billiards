@@ -11,6 +11,7 @@ Ball::Ball(int num,float x, float y, float z) : GameObject(), pMesh(nullptr), pC
 
 	SetLayer("Ball");
 
+	//メッシュ情報をリソースマネージャーから取得
 	ResourceManager::Instance().GetResource(&pMesh, "Ball" + to_string(num), "Resource/Ball.fbx");
 
 	pPhysicsComponent = NEW BallPhysics(this);

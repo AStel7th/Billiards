@@ -27,10 +27,6 @@ void MaterialData::SetTexture(const string& path)
 	size_t wLen = 0;
 	mbstowcs_s(&wLen, wstr, path.size() + 1, path.c_str(), _TRUNCATE);
 
-	////Resource‚©‚ç‚ÌƒpƒX‚ð’Ç‰Á
-	//TCHAR res[512] = L"Resource/";
-	//wcscat_s(res, wstr);
-
 	if (ext == "tga")
 	{
 		hr = LoadFromTGAFile(wstr, &metadata, image);

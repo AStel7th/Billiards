@@ -18,7 +18,6 @@ FBXLoader::~FBXLoader()
 	Release();
 }
 
-//
 void FBXLoader::Release()
 {
 	SAFE_DELETE(pFbx);
@@ -36,7 +35,7 @@ void FBXLoader::LoadFBX(const char* filename,string modelName)
 	if (FAILED(hr))
 		return;
 
-	meshData.SetName(modelName);		//モデルに名前設定、識別にも使う
+	meshData.SetName(modelName);	//モデルに名前設定、識別にも使う
 
 	Setup();
 }
@@ -364,6 +363,10 @@ void FBXLoader::CopyMatrialData(FbxSurfaceMaterial* mat, MESH* mesh, int indexCn
 	data.materialConstantData.diffuse = data.diffuse;
 	data.materialConstantData.specular = data.specular;
 	data.materialConstantData.emmisive = data.emmisive;
+	data.materialConstantData.specularPower = data.specularPower;
+	data.materialConstantData.transparency = data.transparencyFactor;
+	data.materialConstantData.dammy = 0.0f;
+	data.materialConstantData.dammy2 = 0.0f;
 }
 
 
@@ -416,6 +419,7 @@ HRESULT FBXLoader::CreateIndexBuffer(DWORD dwSize, int* pIndex, ID3D11Buffer** p
 //
 void FBXLoader::ComputeNodeMatrix(FbxNode* pNode, MESH* mesh)
 {
+	//FBXとの座標系の違いを修正するための行列
 	XMMATRIX m(1, 0, 0, 0,
 		0, -1, 0, 0,
 		0, 0, -1, 0,
@@ -458,6 +462,7 @@ void FBXLoader::CopyVertexData(FbxMesh*	pMesh, MESH* mesh,FbxDouble3 translation
 	FbxVector4* lControlPoints = pMesh->GetControlPoints();
 	int vertexId = 0;
 
+	//ポリゴン数
 	int faceCount = pMesh->GetPolygonCount();
 
 	for (int i = 0; i < faceCount; i++)
@@ -480,7 +485,10 @@ void FBXLoader::CopyVertexData(FbxMesh*	pMesh, MESH* mesh,FbxDouble3 translation
 			vData.vPos = XMFLOAT3((float)pos.mData[0], (float)pos.mData[1], (float)pos.mData[2]);
 
 			//normal
-			vData.vNor = GetNormal(pMesh, lControlPointIndex);
+			// TODO::コメントアウトの方で問題ないはずだが、バグるので後ほど修正
+			//vData.vNor = GetNormal(pMesh, lControlPointIndex);
+			pMesh->GetPolygonVertexNormal(i, j, nor);
+			vData.vNor = XMFLOAT3((float)nor.mData[0], (float)nor.mData[1], (float)nor.mData[2]);
 
 			//uv
 			vData.vTexcoord = GetUV(pMesh, lControlPointIndex, mesh, i, j);
@@ -569,6 +577,7 @@ XMFLOAT2 FBXLoader::GetUV(FbxMesh* pMesh, int index,MESH* mesh,int polyNum,int i
 	return vTexcoord;
 }
 
+//メッシュアニメーション時、テクセル基準に変更する
 vector<POLY_TABLE>& FBXLoader::GetPolyTable(FbxMesh * pMesh, MESH * mesh, vector<POLY_TABLE>& outArray)
 {
 	outArray.resize(vertexCount);

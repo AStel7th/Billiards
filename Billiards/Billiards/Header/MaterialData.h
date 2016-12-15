@@ -20,6 +20,10 @@ struct MATERIAL_CONSTANT_DATA
 	XMFLOAT4	diffuse;
 	XMFLOAT4	specular;
 	XMFLOAT4	emmisive;
+	float		specularPower;
+	float		transparency;
+	float		dammy;
+	float		dammy2;
 };
 
 class MaterialData

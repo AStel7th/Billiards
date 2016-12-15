@@ -66,7 +66,7 @@ HRESULT InputDeviceManager::Init(HINSTANCE hinstance)
 
 
 	//キーボード用にデバイスオブジェクトを作成
-	hr = pDInput->CreateDevice(GUID_SysKeyboard, &pDIKeyboard, NULL);
+	hr = pDInput->CreateDevice(GUID_SysKeyboard, &pDIKeyboard, nullptr);
 	if (FAILED(hr))
 		return false;  // デバイスの作成に失敗
 

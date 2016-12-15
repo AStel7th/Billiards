@@ -11,7 +11,7 @@ MainCamera::MainCamera() : GameObject()
 
 	pInputComponent = NEW MainCameraInput(this);
 
-	Camera::Instance().SetView(XMFLOAT3(-600.0f, 150.0f, 200.0f), XMFLOAT3(200.0f, 80.0f, -400.0f), XMFLOAT3(0.0f, 1.0f, 0.0f));
+	Camera::Instance().SetView(XMFLOAT3(-600.0f, 150.0f, 200.0f), XMFLOAT3(200.0f, 200.0f, -400.0f), XMFLOAT3(0.0f, 1.0f, 0.0f));
 	Camera::Instance().SetProj(RADIAN(60.0f), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 1.0f, 2000.0f);
 }
 
@@ -35,12 +35,12 @@ MainCameraInput::MainCameraInput(GameObject * pObj) : InputComponent(), whiteBal
 	whiteBall = GameObject::All::GameObjectFindWithName("HandBall");
 	cues = GameObject::All::GameObjectFindWithName("Cues");
 
-	camState = Title;
+	camState = GAME_STATE::Title;
 
 	moveSpeed = 5.0f;
 
 	startPos = XMFLOAT3(-600.0f, 150.0f, 200.0f);
-	startAt = XMFLOAT3(200.0f, 80.0f, -400.0f);
+	startAt = XMFLOAT3(200.0f, 200.0f, -400.0f);
 	followStatePos = XMFLOAT3(0.0f, 300.0f, -150.0f);
 
 	Messenger::OnGamePhase.Add(*this, &MainCameraInput::GamePhase);
@@ -51,14 +51,14 @@ MainCameraInput::~MainCameraInput()
 
 }
 
-void MainCameraInput::Update()
+bool MainCameraInput::Update()
 {
 	XMFLOAT3 cameraPos;
 	XMFLOAT3 cameraAt;
 
 	switch (camState)
 	{
-	case CameraState::Title:
+	case GAME_STATE::Title:
 	{
 		XMFLOAT3 nowPos = XMFLOAT3(Camera::Instance().m_eye.x, Camera::Instance().m_eye.y, Camera::Instance().m_eye.z);
 		XMFLOAT3 nowAt = XMFLOAT3(Camera::Instance().m_at.x, Camera::Instance().m_at.y, Camera::Instance().m_at.z);
@@ -66,15 +66,17 @@ void MainCameraInput::Update()
 		MovePosition(nowAt, startAt, cameraAt);
 	}
 		break;
-	case CameraState::TurnChange:
+	case GAME_STATE::FoulFromDecide:
+	case GAME_STATE::DecideOrder:
 	{
 		XMFLOAT3 nowPos = XMFLOAT3(Camera::Instance().m_eye.x, Camera::Instance().m_eye.y, Camera::Instance().m_eye.z);
+		XMFLOAT3 nowAt = XMFLOAT3(Camera::Instance().m_at.x, Camera::Instance().m_at.y, Camera::Instance().m_at.z);
 		MovePosition(nowPos, followStatePos, cameraPos);
-		cameraAt = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		MovePosition(nowAt, XMFLOAT3(0.0f,0.0f,0.0f), cameraAt);
 	}
 
 		break;
-	case CameraState::Shot:
+	case GAME_STATE::Shot:
 	{
 		XMFLOAT3 nowPos = XMFLOAT3(Camera::Instance().m_eye.x, Camera::Instance().m_eye.y, Camera::Instance().m_eye.z);
 		XMVECTOR distVec;
@@ -96,14 +98,14 @@ void MainCameraInput::Update()
 		cameraAt = whiteBall->pos;
 	}
 	break;
-	case CameraState::FollowMovement:
+	case GAME_STATE::BallMovement:
 	{
 		XMFLOAT3 nowPos = XMFLOAT3(Camera::Instance().m_eye.x, Camera::Instance().m_eye.y, Camera::Instance().m_eye.z);
 		MovePosition(nowPos, followStatePos, cameraPos);
 		cameraAt = whiteBall->pos;
 	}
 		break;
-	case CameraState::BallSet:
+	case GAME_STATE::BallSet:
 	{
 		XMFLOAT3 nowPos = XMFLOAT3(Camera::Instance().m_eye.x, Camera::Instance().m_eye.y, Camera::Instance().m_eye.z);
 		MovePosition(nowPos,followStatePos, cameraPos);
@@ -111,9 +113,22 @@ void MainCameraInput::Update()
 	}
 		
 		break;
+
+	case GAME_STATE::FoulInPocket:
+	case GAME_STATE::FoulAnotherBall:
+	{
+		XMFLOAT3 nowPos = XMFLOAT3(Camera::Instance().m_eye.x, Camera::Instance().m_eye.y, Camera::Instance().m_eye.z);
+		XMFLOAT3 nowAt = XMFLOAT3(Camera::Instance().m_at.x, Camera::Instance().m_at.y, Camera::Instance().m_at.z);
+		MovePosition(nowPos, followStatePos, cameraPos);
+		MovePosition(nowAt, XMFLOAT3(0.0f, 0.0f, 0.0f), cameraAt);
+	}
+
+	break;
 	}
 
 	Camera::Instance().SetView(cameraPos, cameraAt, XMFLOAT3(0.0f, 1.0f, 0.0f));
+
+	return true;
 }
 
 void MainCameraInput::MovePosition(XMFLOAT3& nPos,XMFLOAT3& goal, XMFLOAT3& outPos)
@@ -138,34 +153,5 @@ void MainCameraInput::MovePosition(XMFLOAT3& nPos,XMFLOAT3& goal, XMFLOAT3& outP
 
 void MainCameraInput::GamePhase(GAME_STATE state)
 {
-	switch (state)
-	{
-	case GAME_STATE::Title:
-		camState = Title;
-
-		break;
-
-	case GAME_STATE::DecideOrder:
-		camState = TurnChange;
-
-		break;
-
-	case GAME_STATE::Shot:
-
-		camState = Shot;
-
-		break;
-
-	case GAME_STATE::BallMovement:
-
-		camState = FollowMovement;
-
-		break;
-
-	case GAME_STATE::BallSet:
-
-		camState = BallSet;
-
-		break;
-	}
+	camState = state;
 }

@@ -43,7 +43,9 @@ HouseGraphics::~HouseGraphics()
 {
 }
 
-void HouseGraphics::Update()
+bool HouseGraphics::Update()
 {
 	DrawSystem::Instance().AddDrawList(DRAW_PRIOLITY::Opaque, pMeshData->GetName(), this);
+
+	return true;
 }

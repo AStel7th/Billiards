@@ -4,6 +4,8 @@
 #include "Button.h"	
 #include "GameState.h"
 
+class SoundPlayer;
+
 class TitleMenu : public GameObject
 {
 private:
@@ -19,6 +21,11 @@ private:
 
 	Button<TitleMenu>* pStartButton;
 	Button<TitleMenu>* pExitButton;
+
+	SoundPlayer* pClickSE;
+
+	int marginCnt;
+	int sceneChangeFlg;
 
 	void StartButtonDown();
 	void ExitButtonDown();

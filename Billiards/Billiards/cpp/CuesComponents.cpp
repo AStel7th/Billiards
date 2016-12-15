@@ -5,23 +5,29 @@
 #include "../Header/InputDeviceManager.h"
 #include "../Header/Messenger.h"
 
-CuesControllerInput::CuesControllerInput(GameObject * pObj) : InputComponent()
+CuesControllerInput::CuesControllerInput(GameObject * pObj) : InputComponent(), whiteBall(nullptr)
 {
 	id.push_back(typeid(this));
 	pGameObject = pObj;
 	pGameObject->AddComponent(this);
+
+	whiteBall = GameObject::All::GameObjectFindWithName("HandBall");
 }
 
 CuesControllerInput::~CuesControllerInput()
 {
 }
 
-void CuesControllerInput::Update()
+bool CuesControllerInput::Update()
 {
+	pGameObject->pos = whiteBall->pos;
+
 	if(!InputDeviceManager::Instance().GetMouseButtonDown(0))
 		pGameObject->rot.y -= RADIAN(InputDeviceManager::Instance().GetMouseState().x) / 10.0f;
 
 	pGameObject->SetWorld();
+
+	return true;
 }
 
 CuesInput::CuesInput(GameObject * pObj) : InputComponent(), movePos(10.0f), pPhysics(nullptr)
@@ -31,14 +37,6 @@ CuesInput::CuesInput(GameObject * pObj) : InputComponent(), movePos(10.0f), pPhy
 	pGameObject->AddComponent(this);
 
 	pPhysics = GetComponent<CuesPhysics>(pGameObject);
-
-	
-	/*XMVECTOR ballPos = XMLoadFloat3(&whiteBall->pos);
-	XMVECTOR behindVec = XMVectorSet(whiteBall->world._31, whiteBall->world._32, whiteBall->world._33, whiteBall->world._34);
-	behindVec = XMVector3Normalize(behindVec);
-	XMVECTOR _pos = ballPos - behindVec * 10.0f;
-	XMStoreFloat3(&pGameObject->pos, _pos);
-	XMStoreFloat3(&pPhysics->prePos, _pos);*/
 
 	pGameObject->pos.x = 30.0f;
 	pGameObject->rot.x = RADIAN(-85.0f);
@@ -52,16 +50,12 @@ CuesInput::~CuesInput()
 	Messenger::OnGamePhase.Remove(*this, &CuesInput::ShotPhase);
 }
 
-void CuesInput::Update()
+bool CuesInput::Update()
 {
 	XMFLOAT3 worldPrePos = pGameObject->GetWorldPos();
 	pPhysics->prePos = pGameObject->pos;
 
-	/*XMVECTOR ballPos = XMLoadFloat3(&whiteBall->pos);
-	XMVECTOR behindVec = XMVectorSet(whiteBall->world._11, whiteBall->world._12, whiteBall->world._13, whiteBall->world._14);
-	behindVec = XMVector3Normalize(behindVec);*/
 	pGameObject->pos.x += InputDeviceManager::Instance().GetMouseState().y / 10.0f;
-	/*XMStoreFloat3(&pGameObject->pos, _pos);*/
 
 	pGameObject->SetWorld();
 
@@ -69,11 +63,7 @@ void CuesInput::Update()
 	pPhysics->velocity.y = pGameObject->GetWorldPos().y - worldPrePos.y;
 	pPhysics->velocity.z = pGameObject->GetWorldPos().z - worldPrePos.z;
 
-	/*TCHAR s[256];
-
-	_stprintf_s(s, _T("pos:%f %f %f \n"), pPhysics->velocity.x, pPhysics->velocity.y, pPhysics->velocity.z);
-
-	OutputDebugString(s);*/
+	return true;
 }
 
 void CuesInput::ShotPhase(GAME_STATE state)
@@ -102,9 +92,9 @@ CuesPhysics::~CuesPhysics()
 {
 }
 
-void CuesPhysics::Update()
+bool CuesPhysics::Update()
 {
-	
+	return true;
 }
 
 void CuesPhysics::OnCollisionEnter(GameObject* other)
@@ -126,7 +116,9 @@ CuesGraphics::~CuesGraphics()
 {
 }
 
-void CuesGraphics::Update()
+bool CuesGraphics::Update()
 {
 	DrawSystem::Instance().AddDrawList(DRAW_PRIOLITY::Opaque, pMeshData->GetName(), this);
+
+	return true;
 }

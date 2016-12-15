@@ -28,7 +28,7 @@ public:
 
 // テクスチャまとめたクラス
 class TextureContainer {
-	map<const WCHAR*, TextureInfo> data; // 読み込んだデータ
+	map<string, TextureInfo> data; // 読み込んだデータ
 protected:
 	TextureContainer();
 public:
@@ -41,7 +41,7 @@ public:
 	}
 
 	virtual ~TextureContainer();
-	TextureInfo LoadTexture(const WCHAR* t_pTextureName);   // テクスチャを読み込みます。 t_pTextureName：ファイル名　texNum:識別ID
+	TextureInfo LoadTexture(const string& t_pTextureName);   // テクスチャを読み込みます。 t_pTextureName：ファイル名　texNum:識別ID
 
 private:
 
@@ -147,6 +147,7 @@ public:
 	// 板ポリサイズ指定
 	void SetSize(int w, int h);
 	void GetSize(int* w, int* h);
+	XMINT2 GetSize();
 
 	// スクリーンサイズ指定
 	void SetScreenSize(int w, int h);

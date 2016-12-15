@@ -25,7 +25,7 @@ public:
 
 	virtual ~PocketPhysics();
 
-	void Update();
+	bool Update();
 
 	void OnCollisionEnter(GameObject* other);
 };

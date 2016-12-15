@@ -71,8 +71,9 @@ HandBallInput::~HandBallInput()
 {
 }
 
-void HandBallInput::Update()
+bool HandBallInput::Update()
 {
+	//ファール時の再設置
 	if (setFlag)
 	{
 		handBallPhysics->velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -100,15 +101,11 @@ void HandBallInput::Update()
 			pGameObject->pos.z -= InputDeviceManager::Instance().GetMouseState().y / 10.0f;
 		}
 
-		TCHAR s[256];
-
-		_stprintf_s(s, _T("pos:%f %f %f\n"), pGameObject->pos.x, pGameObject->pos.y, pGameObject->pos.z);
-
-		OutputDebugString(s);
-
 		if (InputDeviceManager::Instance().GetMouseButtonDown(0) == true)
 			BallSetDone();
 	}
+
+	return true;
 }
 
 void HandBallInput::GamePhase(GAME_STATE state)
@@ -124,5 +121,5 @@ void HandBallInput::GamePhase(GAME_STATE state)
 void HandBallInput::BallSetDone()
 {
 	setFlag = false;
-	Messenger::BallSetDone();
+	Messenger::GameStateRequest(GAME_STATE::Shot);
 }

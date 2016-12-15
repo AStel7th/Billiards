@@ -12,9 +12,9 @@ BilliardsTable::BilliardsTable() : GameObject()
 	SetTag("Table");
 
 	SetLayer("Table");
-	//pMesh = ResourceManager::Instance().GetResource("Table", "Resource/billiardsTableCollider.fbx");
+	
+	//メッシュ情報をリソースマネージャーから取得
 	ResourceManager::Instance().GetResource(&pMesh, "Table", "Resource/BilliardsTableModel.fbx");
-	//pMesh = ResourceManager::Instance().GetResource("Table", "Resource/goblin2.fbx");
 
 	pPhysicsComponent = NEW BilliardsTablePhysics(this);
 

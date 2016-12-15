@@ -8,4 +8,7 @@ enum struct GAME_STATE
 	BallMovement,
 	Shot,
 	BallSet,
+	FoulFromDecide,
+	FoulInPocket,
+	FoulAnotherBall
 };

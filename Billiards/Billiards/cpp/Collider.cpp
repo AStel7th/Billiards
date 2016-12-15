@@ -78,9 +78,9 @@ void CollisionOfSpheres(SphereCollider* sCol1, SphereCollider* sCol2 )
 		&t,
 		&C1ColPos,
 		&C2ColPos))
-		return;	// 衝突していないようです
+		return;
 
-				// 衝突位置を前位置として保存
+	// 衝突位置を前位置として保存
 	sCol1Pos = C1ColPos;
 	sCol2Pos = C2ColPos;
 	sCol1PrePos = C1ColPos;
@@ -97,13 +97,13 @@ void CollisionOfSpheres(SphereCollider* sCol1, SphereCollider* sCol2 )
 		&C1ColPos, &sCol1Velo,
 		&C2ColPos, &sCol2Velo,
 		sCol1Mass, sCol2Mass,
-		SPHERE_REPULSION, SPHERE_REPULSION,		// 球の反発係数
+		SPHERE_REPULSION, SPHERE_REPULSION,
 		t,
 		&C1ColPos, &C1Velo,
 		&C2ColPos, &C2Velo))
-		return; // 何か失敗したようです
+		return;
 
-				// 衝突後位置に移動
+	// 衝突後位置に移動
 	sCol1Velo = C1Velo;
 	sCol2Velo = C2Velo;
 	sCol1Pos += C1Velo;
@@ -176,7 +176,10 @@ void CollisionOfMeshAndSphere(MeshCollider* mCol, SphereCollider* sCol)
 				&normal, pos,
 				&t,
 				&ColPos))
-				continue;	// 衝突していないようです
+
+			{
+				continue;
+			}
 			else
 			{
 				// 反射後の速度ベクトルを取得
@@ -205,7 +208,10 @@ void CollisionOfMeshAndSphere(MeshCollider* mCol, SphereCollider* sCol)
 inline void Collider::_Register_(Collider* pCol)
 {
 	//先頭が空の場合は新規タスクを設定
-	if (pBegin == nullptr) pBegin = pCol;
+	if (pBegin == nullptr)
+	{
+		pBegin = pCol;
+	}
 	else
 	{
 		//新規タスクの前に末尾タスクを代入
@@ -225,15 +231,17 @@ inline Collider* Collider::_Unregister_(Collider* pCol)
 	Collider* next = pCol->pNext; //自身の次
 	Collider* prev = pCol->pPrev; //自身の前
 
-								  //次位置に前位置を代入してつなぎ合わせる
-	if (next != nullptr) next->pPrev = prev;
-	//null の場合は末尾タスクがなくなったので、前のタスクを末尾にする
-	else pEnd = prev;
+	//次位置に前位置を代入してつなぎ合わせる
+	if (next != nullptr) 
+		next->pPrev = prev;
+	else
+		pEnd = prev;
 
 	//前に次を代入してつなぎ合わせる
-	if (prev != nullptr) prev->pNext = next;
-	//null の場合は先頭タスクがなくなったので、次のタスクを先頭にする
-	else pBegin = next;
+	if (prev != nullptr)
+		prev->pNext = next;
+	else 
+		pBegin = next;
 
 	//タスクの消去
 	SAFE_DELETE(pCol);
@@ -335,8 +343,6 @@ void SphereCollider::Create(GameObject * pObj, ColliderType type, float r)
 
 void SphereCollider::Update()
 {
-	//pObjectTree->Remove();		// 一度リストから外れる
-
 	if (pObject->isActive())
 	{
 		// 再登録
@@ -400,8 +406,6 @@ void BoxCollider::Create(GameObject * pObj, ColliderType type, float s)
 
 void BoxCollider::Update()
 {
-	//pObjectTree->Remove();		// 一度リストから外れる
-
 	minPos.x = pObject->pos.x - size;
 	minPos.y = pObject->pos.y - size;
 	minPos.z = pObject->pos.z - size;
@@ -443,12 +447,12 @@ void BoxCollider::isCollision(SphereCollider * other)
 
 void BoxCollider::isCollision(BoxCollider * other)
 {
-	int a = 0;
+	//TODO::衝突判定追加する
 }
 
 void BoxCollider::isCollision(MeshCollider * other)
 {
-	int a = 0;
+	//TODO::衝突判定追加する
 }
 
 
@@ -480,8 +484,6 @@ void MeshCollider::Create(GameObject* pObj, ColliderType type, const char* fpath
 
 void MeshCollider::Update()
 {
-	//pObjectTree->Remove();		// 一度リストから外れる
-
 	if (pObject->isActive())
 	{
 		pMeshCol->SetMatrix(pObject->worldMat);
@@ -511,10 +513,10 @@ void MeshCollider::isCollision(SphereCollider * other)
 
 void MeshCollider::isCollision(BoxCollider * other)
 {
-	int a = 0;
+	//TODO::衝突判定追加する
 }
 
 void MeshCollider::isCollision(MeshCollider * other)
 {
-	int a = 0;
+	//TODO::衝突判定追加する
 }

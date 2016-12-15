@@ -15,9 +15,9 @@ BilliardsTablePhysics::~BilliardsTablePhysics()
 
 }
 
-void BilliardsTablePhysics::Update()
+bool BilliardsTablePhysics::Update()
 {
-	
+	return true;
 }
 
 
@@ -28,16 +28,15 @@ BilliardsTableGraphics::BilliardsTableGraphics(GameObject * pObj, MeshData* mesh
 	pGameObject->AddComponent(this);
 
 	pMeshData = mesh;
-
-	/*DrawSystem::Instance().AddDrawList(DRAW_PRIOLITY::Opaque, pMeshData->GetName(), this);*/
 }
 
 BilliardsTableGraphics::~BilliardsTableGraphics()
 {
 }
 
-void BilliardsTableGraphics::Update()
+bool BilliardsTableGraphics::Update()
 {
-	//frame++;
 	DrawSystem::Instance().AddDrawList(DRAW_PRIOLITY::Opaque, pMeshData->GetName(), this);
+
+	return true;
 }

@@ -69,7 +69,6 @@ void CollisionFromFBX::SetupNode(FbxNode* pNode)
 		}
 	}
 
-	//
 	ComputeNodeMatrix(pNode, &colNode);
 
 	m_fbxNodeArray.push_back(colNode);
@@ -116,28 +115,35 @@ void CollisionFromFBX::CopyVertexData(FbxMesh*	pMesh, FBX_COLLISION_NODE* meshNo
 			vData.pos = pos;
 
 			//normal
-			for (int k = 0; k < pMesh->GetElementNormalCount(); k++) {
+			for (int k = 0; k < pMesh->GetElementNormalCount(); k++) 
+			{
 				FbxGeometryElementNormal* leNormals = pMesh->GetElementNormal(k);
 				//Mapping == eByPolygonVertex
-				if (leNormals->GetMappingMode() == FbxGeometryElement::eByPolygonVertex) {
+				if (leNormals->GetMappingMode() == FbxGeometryElement::eByPolygonVertex) 
+				{
 					//Reference == eDirect
-					if (leNormals->GetReferenceMode() == FbxGeometryElement::eDirect) {
+					if (leNormals->GetReferenceMode() == FbxGeometryElement::eDirect)
+					{
 						nor = leNormals->GetDirectArray().GetAt(lControlPointIndex);
 						//Reference == eIndexToDirect
 					}
-					else if (leNormals->GetReferenceMode() == FbxGeometryElement::eIndexToDirect) {
+					else if (leNormals->GetReferenceMode() == FbxGeometryElement::eIndexToDirect) 
+					{
 						int id = leNormals->GetIndexArray().GetAt(lControlPointIndex);
 						nor = leNormals->GetDirectArray().GetAt(id);
 					}
 					//Mapping == eByControlPoint
 				}
-				else if (leNormals->GetMappingMode() == FbxGeometryElement::eByControlPoint) {
+				else if (leNormals->GetMappingMode() == FbxGeometryElement::eByControlPoint) 
+				{
 					//Reference == eDirect
-					if (leNormals->GetReferenceMode() == FbxGeometryElement::eDirect) {
+					if (leNormals->GetReferenceMode() == FbxGeometryElement::eDirect) 
+					{
 						nor = leNormals->GetDirectArray().GetAt(lControlPointIndex);
 						//Reference == eIndexToDirect
 					}
-					else if (leNormals->GetReferenceMode() == FbxGeometryElement::eIndexToDirect) {
+					else if (leNormals->GetReferenceMode() == FbxGeometryElement::eIndexToDirect) 
+					{
 						int id = leNormals->GetIndexArray().GetAt(lControlPointIndex);
 						nor = leNormals->GetDirectArray().GetAt(id);
 					}

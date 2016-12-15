@@ -151,3 +151,52 @@ static LPWSTR* StringToWideChar(LPWSTR* str, string temp)
 	*(*str + n) = '\0';
 	return str;
 }
+
+
+//ZXY回転　XMMatrixRotationRollPitchYawで作成した行列
+//mtx = XMMatrixRotationRollPitchYaw(rx,ry,rz);
+//mtxからオイラー角を求める
+//ただし -π/2 < rx < +π/2
+static XMFLOAT3 MatrixToEulerZXY(XMMATRIX& mat)
+{
+	XMFLOAT3 rot;
+	rot.x = -asinf(XMVectorGetY(mat.r[2]));
+	rot.y = atan2f(XMVectorGetX(mat.r[2]), XMVectorGetZ(mat.r[2]));
+	rot.z = atan2f(XMVectorGetY(mat.r[0]), XMVectorGetY(mat.r[1]));
+
+	return rot;
+}
+
+
+//ZYX回転
+//mtx = XMMatrixRotationZ(rz);
+//mtx = XMMatrixMultiply(mtx, XMMatrixRotationY( ry ));
+//mtx = XMMatrixMultiply(mtx, XMMatrixRotationX( rx ));
+//mtxからオイラー角を求める
+//ただし -π/2 < ry < +π/2
+static XMFLOAT3 MatrixToEulerZYX(XMMATRIX& mat)
+{
+	XMFLOAT3 rot;
+	rot.x = -atan2f(XMVectorGetY(mat.r[2]), XMVectorGetZ(mat.r[2]));
+	rot.y = asinf(XMVectorGetX(mat.r[2]));
+	rot.z = -atan2f(XMVectorGetX(mat.r[1]), XMVectorGetX(mat.r[0]));
+
+	return rot;
+}
+
+
+//XYZ回転
+//mtx = XMMatrixRotationX(rx);
+//mtx = XMMatrixMultiply(mtx, XMMatrixRotationY( ry ));
+//mtx = XMMatrixMultiply(mtx, XMMatrixRotationZ( rz ));
+//mtxからオイラー角を求める
+//ただし -π/2 < ry < +π/2
+static XMFLOAT3 MatrixToEulerXYZ(XMMATRIX& mat)
+{
+	XMFLOAT3 rot;
+	rot.x = atan2f(XMVectorGetZ(mat.r[1]), XMVectorGetZ(mat.r[2]));
+	rot.y = -asinf(XMVectorGetZ(mat.r[0]));
+	rot.z = atan2f(XMVectorGetY(mat.r[0]), XMVectorGetX(mat.r[0]));
+
+	return rot;
+}

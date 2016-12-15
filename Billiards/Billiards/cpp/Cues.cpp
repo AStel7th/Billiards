@@ -5,23 +5,21 @@
 #include "../Header/Messenger.h"
 #include "../Header/InputDeviceManager.h"
 
-CuesController::CuesController() : GameObject(), pInputComponent(nullptr),whiteBall(nullptr)
+CuesController::CuesController() : GameObject(), pInputComponent(nullptr)
 {
 	SetName("CuesController");
 
 	SetTag("CuesController");
 
 	SetLayer("Cues");
-	
-	whiteBall = GameObject::All::GameObjectFindWithName("HandBall");
-
-	pos = whiteBall->pos;
 
 	pInputComponent = NEW CuesControllerInput(this);
 
 	SetWorld();
 	
 	AddChild(Create<Cues>());
+
+	SetActive(false);
 
 	Messenger::OnGamePhase.Add(*this, &CuesController::ShotPhase);
 }
@@ -41,13 +39,9 @@ void CuesController::ShotPhase(GAME_STATE state)
 {
 	if (state == GAME_STATE::Shot)
 	{
-		pos = whiteBall->pos;
-		
-		SetWorld();
-		
 		SetActive(true);
 	}
-	else if (state == GAME_STATE::BallSet)
+	else
 	{
 		SetActive(false);
 	}

@@ -11,7 +11,8 @@
 
 using namespace std;
 
-BallPhysics::BallPhysics(GameObject* pObj) : PhysicsComponent(), isMove(false)
+
+BallPhysics::BallPhysics(GameObject* pObj) : PhysicsComponent(), isMove(false), firstHit(nullptr)
 {
 	id.push_back(typeid(this));
 	pGameObject = pObj;
@@ -26,8 +27,8 @@ BallPhysics::BallPhysics(GameObject* pObj) : PhysicsComponent(), isMove(false)
 	mass = 170.0f;		// ビリヤードのボールの重さ
 
 	prePos = pGameObject->pos;
-	/*velocity.x = -0.2f;
-	velocity.z = -1.5f;*/
+
+	Messenger::OnGamePhase.Add(*this, &BallPhysics::GamePhase);
 }
 
 BallPhysics::~BallPhysics()
@@ -35,10 +36,11 @@ BallPhysics::~BallPhysics()
 	SAFE_DELETE(hitSE);
 }
 
-void BallPhysics::Update()
+bool BallPhysics::Update()
 {
 	velocity.y -= GRAVITY / 60.0f;
 
+	//減速処理
 	XMVECTOR _velo = XMLoadFloat3(&velocity);
 	_velo *= 0.99f;
 
@@ -56,14 +58,31 @@ void BallPhysics::Update()
 	pGameObject->pos.z += velocity.z;
 
 	pGameObject->SetWorld();
+
+	return true;
+}
+
+
+void BallPhysics::GamePhase(GAME_STATE state)
+{
+	if (state == GAME_STATE::Shot)
+		firstHit = nullptr;
 }
 
 void BallPhysics::OnCollisionEnter(GameObject * other)
 {
+	if(other->tag == "Ball" || other->tag == "Cues")
+		hitSE->Play();
+
+	if (pGameObject->name == "HandBall" && other->tag == "Ball" && firstHit == nullptr)
+	{
+		firstHit = other;
+		Messenger::SetFirstHitBall(firstHit);
+	}
+
 	if (other->tag != "Table" && !isMove)
 	{
 		Messenger::BallMovement(pGameObject, true);
-		hitSE->Play();
 	}
 
 	if(other->tag == "Pocket")
@@ -71,7 +90,7 @@ void BallPhysics::OnCollisionEnter(GameObject * other)
 }
 
 
-BallGraphics::BallGraphics(GameObject* pObj, MeshData* mesh,int num) : GraphicsComponent()
+BallGraphics::BallGraphics(GameObject* pObj, MeshData* mesh,int num) : GraphicsComponent(), pPhysics(nullptr)
 {
 	id.push_back(typeid(this));
 	pGameObject = pObj;
@@ -80,6 +99,7 @@ BallGraphics::BallGraphics(GameObject* pObj, MeshData* mesh,int num) : GraphicsC
 	pMeshData = mesh;
 	MaterialData* matData = MaterialManager::Instance().CreateMaterial("BallTex" + to_string(num));
 
+	//テクスチャ差し替え
 	for each (MESH var in pMeshData->GetMeshList())
 	{
 		if (var.materialData.size() == 0)
@@ -89,15 +109,57 @@ BallGraphics::BallGraphics(GameObject* pObj, MeshData* mesh,int num) : GraphicsC
 		matData->SetTexture("Resource/Texture/" + to_string(num) + ".png");
 		var.materialData[0] = matData;
 	}
+	
+	pPhysics = GetComponent<PhysicsComponent>(pGameObject);
 
-	/*DrawSystem::Instance().AddDrawList(DRAW_PRIOLITY::Opaque, pMeshData->GetName(), this);*/
+	circumference  = (2.6f * 2) * XM_PI;		//円周の長さ
 }
 
 BallGraphics::~BallGraphics()
 {
 }
 
-void BallGraphics::Update()
+bool BallGraphics::Update()
 {
+	//回転処理
+	float ang;
+	XMMATRIX rot;
+	XMVECTOR upVec = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	XMVECTOR dirVec = XMLoadFloat3(&XMFLOAT3(pPhysics->velocity.x,0.0f, pPhysics->velocity.z));
+	float length;
+	XMStoreFloat(&length, XMVector3Length(dirVec));
+	dirVec = XMVector3Normalize(dirVec);
+
+	XMVECTOR cross = XMVector3Cross(upVec, dirVec);
+
+	if (length > 0.01f)
+	{
+		float proportion = length / circumference;
+
+		ang = 360.0f * proportion;
+	}
+	else
+	{
+		ang = 0.0f;
+	}
+	
+	rot = XMMatrixIdentity();
+
+	if (!XMVector3Equal(cross, XMVectorZero()))
+	{
+		rot = XMMatrixRotationAxis(cross, RADIAN(ang));
+	}
+	
+	//行列からオイラー角取得
+	XMFLOAT3 eulerRot = MatrixToEulerXYZ(rot);
+
+	pGameObject->rot.x += eulerRot.x;
+	pGameObject->rot.y += eulerRot.y;
+	pGameObject->rot.z += eulerRot.z;
+
+	pGameObject->SetWorld();
+
 	DrawSystem::Instance().AddDrawList(DRAW_PRIOLITY::Opaque, pMeshData->GetName(), this);
+
+	return true;
 }

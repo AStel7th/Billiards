@@ -29,7 +29,7 @@ public:
 	}
 
 	virtual ~InputComponent() {}
-	virtual void Update() = 0;
+	virtual bool Update() = 0;
 };
 
 class PhysicsComponent : public Component
@@ -47,7 +47,7 @@ public:
 	}
 
 	virtual ~PhysicsComponent(){}
-	virtual void Update() = 0;
+	virtual bool Update() = 0;
 	virtual void OnCollisionEnter(GameObject* other) {}
 };
 
@@ -64,5 +64,5 @@ public:
 	}
 
 	virtual ~GraphicsComponent(){}
-	virtual void Update() = 0;
+	virtual bool Update() = 0;
 };

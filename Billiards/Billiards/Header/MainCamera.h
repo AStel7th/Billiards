@@ -19,16 +19,8 @@ public:
 class MainCameraInput : public InputComponent
 {
 private:
-	enum CameraState
-	{
-		Title,
-		TurnChange,
-		Shot,
-		FollowMovement,
-		BallSet,
-	};
+	GAME_STATE camState;
 
-	CameraState camState;
 	GameObject* whiteBall;
 	GameObject* cues;
 
@@ -45,6 +37,6 @@ public:
 
 	virtual ~MainCameraInput();
 
-	void Update();
+	bool Update();
 
 };

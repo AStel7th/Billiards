@@ -7,13 +7,13 @@ class CuesPhysics;
 class CuesControllerInput : public InputComponent
 {
 private:
-	
+	GameObject* whiteBall;
 public:
 	CuesControllerInput(GameObject* pObj);
 
 	virtual ~CuesControllerInput();
 
-	void Update();
+	bool Update();
 };
 
 class CuesInput : public InputComponent
@@ -28,7 +28,7 @@ public:
 
 	virtual ~CuesInput();
 
-	void Update();
+	bool Update();
 };
 
 class CuesPhysics : public PhysicsComponent
@@ -38,7 +38,7 @@ public:
 
 	virtual ~CuesPhysics();
 
-	void Update();
+	bool Update();
 
 	void OnCollisionEnter(GameObject* other);
 };
@@ -50,5 +50,5 @@ public:
 
 	virtual ~CuesGraphics();
 
-	void Update();
+	bool Update();
 };
