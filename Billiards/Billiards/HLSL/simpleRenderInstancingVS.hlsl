@@ -23,8 +23,11 @@ cbuffer cbMaterial : register(b3)
 	float4 g_Ambient;
 	float4 g_Diffuse;
 	float4 g_Specular;
-	float g_Power;
 	float4 g_Emmisive;
+	float  g_specularPower;
+	float  g_transparency;
+	float  dammy;
+	float  dammy2;
 };
 
 struct VS_INPUT
@@ -54,10 +57,10 @@ PSSkinIn vs_main(VS_INPUT input, uint instanceID : SV_InstanceID)
 	instanceWVP = transpose(instanceWVP);
 
 	output.Pos = mul(input.Pos, instanceWVP);
-	output.Norm = input.Nor;
+	output.Norm = mul(input.Nor, (float3x3)mul(g_pInstanceData[instanceID].instanceMat, Local));
 	output.Tex = input.Tex;
 	float3 LightDir = normalize(g_vLight);
-	float3 PosWorld = mul(input.Pos, mul(Local,g_pInstanceData[instanceID].instanceMat));
+	float3 PosWorld = mul(output.Pos, mul(Local,g_pInstanceData[instanceID].instanceMat));
 	float3 ViewDir = normalize(g_vEye - PosWorld);
 	float3 Normal = normalize(output.Norm);
 	float4 NL = saturate(dot(Normal, LightDir));
@@ -66,8 +69,8 @@ PSSkinIn vs_main(VS_INPUT input, uint instanceID : SV_InstanceID)
 	float4 specular = pow(saturate(dot(Reflect, ViewDir)), 4);
 
 
-
 	output.Color = g_Diffuse * NL + specular*g_Specular;
+	output.Color.w = g_transparency;
 
 	return output;
 }

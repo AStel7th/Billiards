@@ -29,8 +29,11 @@ cbuffer cbMaterial : register(b3)
 	float4 g_Ambient;
 	float4 g_Diffuse;
 	float4 g_Specular;
-	float g_Power;
 	float4 g_Emmisive;
+	float  g_specularPower;
+	float  g_transparency;
+	float  dammy;
+	float  dammy2;
 };
 
 
@@ -131,9 +134,8 @@ PSSkinIn VSSkin(VSSkinIn input)
 	float3 Reflect = normalize(2 * NL * Normal - LightDir);
 	float4 specular = pow(saturate(dot(Reflect, ViewDir)), 4);
 
-
-
 	output.Color = g_Diffuse * NL + specular*g_Specular;
+	output.Color.w = g_transparency;
 
 	return output;
 
@@ -153,9 +155,8 @@ PSSkinIn VSSkin(VSSkinIn input)
 	//float3 Reflect = normalize(2 * NL * Normal - LightDir);
 	//float4 specular = pow(saturate(dot(Reflect, ViewDir)), 4);
 
-
-
 	//output.Color = g_Diffuse * NL + specular*g_Specular;
+	//output.Color.w = g_transparency;
 
 	//return output;
 }

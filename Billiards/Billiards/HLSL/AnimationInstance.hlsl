@@ -33,8 +33,11 @@ cbuffer cbMaterial : register(b3)
 	float4 g_Ambient;
 	float4 g_Diffuse;
 	float4 g_Specular;
-	float g_Power;
 	float4 g_Emmisive;
+	float  g_specularPower;
+	float  g_transparency;
+	float  dammy;
+	float  dammy2;
 };
 
 //スキニング後の頂点・法線が入る
@@ -130,7 +133,7 @@ PSSkinIn VSSkin(VSSkinIn input, uint instanceID : SV_InstanceID)
 
 	instanceWVP = transpose(instanceWVP);
 	output.Pos = mul(vSkinned.Pos, instanceWVP);
-	output.Norm = normalize(mul(vSkinned.Norm, (float3x3)World));
+	output.Norm = mul(vSkinned.Norm, (float3x3)g_pInstanceData[instanceID].instanceMat);
 	output.Tex = input.Tex;
 	float3 LightDir = normalize(g_vLight);
 	float3 PosWorld = mul(vSkinned.Pos, World);
@@ -141,9 +144,8 @@ PSSkinIn VSSkin(VSSkinIn input, uint instanceID : SV_InstanceID)
 	float3 Reflect = normalize(2 * NL * Normal - LightDir);
 	float4 specular = pow(saturate(dot(Reflect, ViewDir)), 4);
 
-
-
 	output.Color = g_Diffuse * NL + specular*g_Specular;
+	output.Color.w = g_transparency;
 
 	return output;
 
@@ -163,9 +165,8 @@ PSSkinIn VSSkin(VSSkinIn input, uint instanceID : SV_InstanceID)
 	//float3 Reflect = normalize(2 * NL * Normal - LightDir);
 	//float4 specular = pow(saturate(dot(Reflect, ViewDir)), 4);
 
-
-
 	//output.Color = g_Diffuse * NL + specular*g_Specular;
+	//output.Color.w = g_transparency;
 
 	//return output;
 }
