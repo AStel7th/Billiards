@@ -31,38 +31,37 @@ struct VS_INPUT
 	float3 Norm : NORMAL;//頂点法線
 	float2 Tex	: TEXCOORD;//テクスチャー座標
 };
-//ピクセルシェーダーの入力（バーテックスバッファーの出力）　
-struct PSSkinIn
+//バーテックスバッファーの出力
+struct VS_OUTPUT
 {
-	float4 Pos	: SV_POSITION;//位置
-	float3 Norm : NORMAL;//頂点法線
-	float2 Tex	: TEXCOORD;//テクスチャー座標
-	float4 Color : COLOR0;//最終カラー（頂点シェーダーにおいての）
+	float4 Pos		: SV_POSITION;//位置
+	float3 Norm		: NORMAL;//頂点法線
+	float4 Color	: COLOR0;//最終カラー（頂点シェーダーにおいての）
+	float2 Tex		: TEXCOORD0;//テクスチャー座標
+	float3 L		: TEXCOORD1;   //頂点 -> ライト位置 ベクトル
+	float3 E		: TEXCOORD2;   //頂点 -> 視点 ベクトル
 };
 
 //
 //PSSkinIn VSSkin(VSSkinIn input )
 //バーテックスシェーダー
-PSSkinIn vs_main(VS_INPUT input)
+VS_OUTPUT vs_main(VS_INPUT input)
 {
-	PSSkinIn output;
+	VS_OUTPUT output;
 
 	output.Pos = mul(float4(input.Pos, 1.0f), WVP);
-	output.Norm = mul(input.Norm, (float3x3)World);
+	output.Norm = input.Norm;
 	output.Tex = input.Tex;
-	float3 LightDir = normalize((float3)g_vLight);
-	float3 PosWorld = mul((float3)output.Pos, World);
-	float3 ViewDir = normalize((float3)g_vEye - PosWorld);
-	float3 Normal = normalize(output.Norm);
-	float4 NL = saturate(dot(Normal, LightDir));
 
-	float3 Reflect = normalize(2 * NL * Normal - LightDir);
-	float4 specular = pow(saturate(dot(Reflect, ViewDir)), 4);
+	//ライト方向で入力されるので、頂点 -> ライト位置とするために逆向きに変換する。なおアプリケーションで必ず正規化すること
+	output.L = -g_vLight.xyz;
 
+	//ライトベクトルと法線ベクトルの内積を計算し、計算結果の色の最低値を環境光( m_Ambient )に制限する
+	output.Color = g_Diffuse * min( max(dot(output.Norm, output.L) ,g_Ambient) + g_Emmisive, 1.0f );
+	//output.Color = min(max(g_Ambient, dot(output.Norm, output.L)), 1.0f);
 
-
-	output.Color = g_Diffuse * NL + specular*g_Specular;
-	output.Color.w = g_transparency;
-
+	//頂点 -> 視点 へのベクトルを計算
+	output.E = g_vEye.xyz - input.Pos.xyz;
+	
 	return output;
 }
