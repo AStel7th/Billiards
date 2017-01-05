@@ -193,6 +193,7 @@
     <ClCompile Include="cpp\MeshData.cpp" />
     <ClCompile Include="cpp\Messenger.cpp" />
     <ClCompile Include="cpp\NineBall.cpp" />
+    <ClCompile Include="cpp\Plane.cpp" />
     <ClCompile Include="cpp\Pocket.cpp" />
     <ClCompile Include="cpp\ResourceManager.cpp" />
     <ClCompile Include="cpp\SpaceDivision.cpp" />
@@ -239,6 +240,7 @@
     <ClInclude Include="Header\Cues.h" />
     <ClInclude Include="Header\Messenger.h" />
     <ClInclude Include="Header\NineBall.h" />
+    <ClInclude Include="Header\Plane.h" />
     <ClInclude Include="Header\Pocket.h" />
     <ClInclude Include="Header\ResourceManager.h" />
     <ClInclude Include="Header\Shader.h" />
