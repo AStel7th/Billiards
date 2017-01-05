@@ -24,7 +24,7 @@ BallPhysics::BallPhysics(GameObject* pObj) : PhysicsComponent(), isMove(false), 
 	hitSE = NEW SoundPlayer();
 	hitSE->Create(data);
 
-	mass = 170.0f;		// ビリヤードのボールの重さ
+	mass = 17.0f;		// ビリヤードのボールの重さ
 
 	prePos = pGameObject->pos;
 
@@ -38,7 +38,7 @@ BallPhysics::~BallPhysics()
 
 bool BallPhysics::Update()
 {
-	velocity.y -= GRAVITY / 60.0f;
+	velocity.y -= GRAVITY / 45.0f;
 
 	//減速処理
 	XMVECTOR _velo = XMLoadFloat3(&velocity);

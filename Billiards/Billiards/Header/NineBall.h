@@ -7,6 +7,8 @@ using namespace std;
 
 class SoundPlayer;
 
+const int BALL_MAX = 9;
+
 class NineBall : public GameObject
 {
 private:
@@ -14,7 +16,9 @@ private:
 	map<GameObject*, bool> ballList;
 	SoundPlayer* pBGM;
 	GameObject* nextTargetBall;
+	int nextBallNum;
 	bool isFirstHit;
+	bool inPocket;
 
 	int playerTurn;
 

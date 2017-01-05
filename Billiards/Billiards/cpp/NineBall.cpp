@@ -34,7 +34,7 @@ NineBall::NineBall() : GameObject(), pBGM(nullptr), nextTargetBall(nullptr)
 	ballList[Create<Ball>(6, 4.9f, 78.0f, 2.9f)]	= false;
 	ballList[Create<Ball>(7, -4.9f, 78.0f, -2.9f)] = false;
 	ballList[Create<Ball>(8, -4.9f, 78.0f, 2.9f)]	= false;
-	ballList[Create<Ball>(9, 0.0f, 78.0f, 0.0f)]	= false;		//TODO::中央に設置すると、2つのポリゴンから衝突分の反射ベクトルが返ってくるため修正する
+	ballList[Create<Ball>(9, 0.01f, 78.0f, 0.0f)]	= false;		//TODO::中央に設置すると、2つのポリゴンから衝突分の反射ベクトルが返ってくるため修正する
 	Create<CuesController>();
 	Create<MainCamera>();
 	Create<PlayerTurnUI>(1);
@@ -49,9 +49,13 @@ NineBall::NineBall() : GameObject(), pBGM(nullptr), nextTargetBall(nullptr)
 
 	playerTurn = 1;
 
-	nextTargetBall = GameObject::All::GameObjectFindWithName("Ball1");
+	nextBallNum = 1;
+	string name = "Ball" + to_string(nextBallNum);
+	nextTargetBall = GameObject::All::GameObjectFindWithName(name);
 
 	isFirstHit = false;
+
+	inPocket = false;
 
 	Messenger::OnGameStart.Add(*this, &NineBall::GameStart);
 	Messenger::OnGameStateRequest.Add(*this, &NineBall::GameStateRequest);
@@ -74,7 +78,9 @@ NineBall::~NineBall()
 
 void NineBall::Update()
 {
-
+	TCHAR buf[128];
+	_stprintf_s(buf, _T("%d\n"),nowState);
+	OutputDebugString(buf);
 }
 
 bool NineBall::IsBallMoving()
@@ -140,22 +146,41 @@ void NineBall::isBallMovement(GameObject * pBall,bool flg)
 			}
 			else
 			{
-				nowState = GAME_STATE::Shot;
-				Messenger::GamePhase(nowState);
+				if (inPocket)
+				{
+					nowState = GAME_STATE::Shot;
+					Messenger::GamePhase(nowState);
+				}
+				else
+				{
+					nowState = GAME_STATE::DecideOrder;
+					Messenger::GamePhase(nowState);
+
+					if (playerTurn > 1)
+						playerTurn = 1;
+					else
+						playerTurn = 2;
+
+					Messenger::TurnChange(nowState, playerTurn);
+				}
 			}
 
 			if(!nextTargetBall->isActive())
 			{
-				for each (pair<GameObject*, bool> var in ballList)
+				for (int i = 1; i < BALL_MAX; i++)
 				{
-					if (var.second == true)
-					{
-						nextTargetBall = var.first;
-					}
+					nextBallNum = i;
+					string name = "Ball" + to_string(nextBallNum);
+					nextTargetBall = GameObject::All::GameObjectFindWithName(name);
+
+					if (nextTargetBall->isActive())
+						break;
 				}
 			}
 
 			isFirstHit = false;
+
+			inPocket = false;
 		}
 	}
 	else
@@ -175,6 +200,10 @@ void NineBall::IdentifyBall(GameObject * pBall)
 	{
 		nowState = GAME_STATE::FoulInPocket;
 		Messenger::GamePhase(nowState);
+	}
+	else
+	{
+		inPocket = true;
 	}
 
 	if (pBall->name == "Ball9")

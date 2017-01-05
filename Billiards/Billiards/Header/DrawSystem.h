@@ -107,7 +107,7 @@ private:
 
 	XMFLOAT4X4 view;
 	XMFLOAT4X4 proj;
-	XMFLOAT4 lightPos;
+	XMFLOAT4 lightDir;
 
 	void Render(GraphicsComponent* pGC, bool isAnim);
 	void RenderInstancing(vector<GraphicsComponent*>& pGClist, int refCnt, bool isAnim);

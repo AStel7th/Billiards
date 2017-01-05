@@ -84,7 +84,7 @@ HRESULT DrawSystem::Init(unsigned int msaaSamples)
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
-
+	
 	D3D11_INPUT_ELEMENT_DESC layout_Animation[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -187,7 +187,7 @@ HRESULT DrawSystem::Init(unsigned int msaaSamples)
 	if (FAILED(d3d11.pD3DDevice->CreateShaderResourceView(pTransformStructuredBuffer.Get(), &srvDesc, &pTransformSRV)))
 		return E_FAIL;
 
-	lightPos = XMFLOAT4(100.0f, 200.0f, 100.0f, 0.0f);
+	lightDir = XMFLOAT4(-100.0f, -200.0f, 100.0f, 1.0f);
 
 	return true;
 }
@@ -306,19 +306,30 @@ void DrawSystem::Render(GraphicsComponent* pGC, bool isAnim)
 	{
 		MESH mesh = pGC->pMeshData->GetMeshList()[j];
 
+		XMMATRIX m, m1;
+		XMVECTOR LightDir;
+		XMVECTOR v;
+
+		//カメラ位置
+		m1 = XMLoadFloat4x4(&pGC->pGameObject->worldMat) * XMLoadFloat4x4(&Camera::Instance().view);
+		m1 = XMMatrixInverse(nullptr, m1);
+		v = XMVector4Transform(XMVectorSet(Camera::Instance().m_eye.x, Camera::Instance().m_eye.y, Camera::Instance().m_eye.z, 0), m1);
+		XMFLOAT4 eyePos;
+		XMStoreFloat4(&eyePos, v);
+
 		// メッシュ基準のローカル座標系上での平行光源の方向ベクトルを計算する
-		XMMATRIX matInv = XMMatrixInverse(nullptr, XMLoadFloat4x4(&pGC->pGameObject->worldMat));
-		XMVECTOR v = XMVector4Transform(XMLoadFloat4(&lightPos), matInv);
-		XMVECTOR nv = XMVector3Normalize(v);
+		m1 = XMMatrixInverse(nullptr, XMLoadFloat4x4(&pGC->pGameObject->worldMat));
+		v = XMVector4Transform(XMLoadFloat4(&lightDir), m1);
+		v = XMVector3Normalize(v);
 		XMFLOAT4 localLightPos;
-		XMStoreFloat4(&localLightPos, nv);
+		XMStoreFloat4(&localLightPos, v);
 
 		D3D11_MAPPED_SUBRESOURCE pData;
 		if (SUCCEEDED(d3d11.pD3DDeviceContext->Map(pcBuffer0.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &pData)))
 		{
 			SHADER_GLOBAL sg;
 			sg.lightDir = localLightPos;
-			sg.eye = XMFLOAT4(Camera::Instance().m_eye.x, Camera::Instance().m_eye.y, Camera::Instance().m_eye.z, 0);
+			sg.eye = eyePos;
 			memcpy_s(pData.pData, pData.RowPitch, (void*)&sg, sizeof(SHADER_GLOBAL));
 			d3d11.pD3DDeviceContext->Unmap(pcBuffer0.Get(), 0);
 		}
